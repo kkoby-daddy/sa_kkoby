@@ -20,7 +20,7 @@
           border: none;
           outline: none;
           background-color: red;
-          color: white;
+          color: black;
           cursor: pointer;
           padding: 15px;
           border-radius: 4px;
@@ -1299,8 +1299,35 @@
             });
         });
     </script>
+
+<style>
+  body {
+    background-color: #121212;
+    color: #e0e0e0;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  body.light {
+    background-color: #ffffff;
+    color: #000000;
+  }
+  .panel, .table {
+    background-color: inherit;
+    color: inherit;
+  }
+  .btn {
+    transition: background-color 0.3s, color 0.3s;
+  }
+  #theme-toggle {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 9999;
+  }
+</style>
+
 </head>
 <body>
+  <button id="theme-toggle" class="btn btn-default">라이트 모드</button>
     <div class="container">
         <h2>꼬비아빠 놀이터</h2>
         <p class="text-right" id="ver"></p>
@@ -1381,7 +1408,7 @@
                         <th>공격력</th>
                         <th>방어력</th>
                         <th>순발력</th>
-                        <th>맹독 데미지</th>
+                        <!-- <th>맹독 데미지</th> -->
                     </tr>
                 </thead>
                 <tbody>
@@ -1416,12 +1443,20 @@
     </div>
     <!-- Modal -->
 </div>
+
+<script>
+  const btn = document.getElementById("theme-toggle");
+  btn.addEventListener("click", () => {
+    document.body.classList.toggle("light");
+    if (document.body.classList.contains("light")) {
+      btn.textContent = "다크 모드";
+      btn.className = "btn btn-dark";
+    } else {
+      btn.textContent = "라이트 모드";
+      btn.className = "btn btn-default";
+    }
+  });
+</script>
+
 </body>
 </html>
-
-
-
-
-
-
-
