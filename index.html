@@ -1303,11 +1303,19 @@
 <style>
   body {
     background-color: #121212;
-    color: #ffffff;
+    color: #e0e0e0;
+    transition: background-color 0.3s, color 0.3s;
   }
   body.light {
-    background-color: #121212;
-    color: #ffffff;
+    background-color: #ffffff;
+    color: #000000;
+  }
+  .panel, .table {
+    background-color: inherit;
+    color: inherit;
+  }
+  .btn {
+    transition: background-color 0.3s, color 0.3s;
   }
   #theme-toggle {
     position: fixed;
