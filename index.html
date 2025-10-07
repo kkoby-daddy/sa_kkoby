@@ -91,7 +91,7 @@
   .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
   .footer{max-width:1100px; margin:8px auto 30px; padding:0 16px; color:var(--muted); font-size:12px; text-align: center;}
   .imgbox{width:100%; aspect-ratio: 16/9; border:1px dashed #334055; border-radius:12px; display:grid; place-items:center; background:#0d1117; overflow:hidden;}
-  .imgbox img{width:100%; height:100%; object-fit:contain; display:block}
+  .imgbox img{max-width:100%; max-height:100%; object-fit:contain; display:block}
   .stepper{display:flex; gap:6px; margin-top:6px}
 
   /* 라이트 모드 스타일 */
@@ -147,10 +147,10 @@
 <div class="grid">
   <!-- 좌: 펫 선택 -->
   <section class="card">
-    <h3>① 펫 선택</h3>
+    <h3>① 페트 선택</h3>
     <div class="row">
       <div class="col chooser">
-        <label>초성 키패드</label>
+        <label>페트 초성</label>
         <div id="chosung" class="chips"></div>
 
         <div class="row" style="margin-top:6px; align-items:center">
@@ -160,23 +160,23 @@
 
         <div class="row" style="margin-top:8px">
           <div class="col">
-            <input type="text" id="petSearch" placeholder="이름으로 검색 (예: 카르곤, 반기노)" />
+            <input type="text" id="petSearch" placeholder="페트 이름으로 검색 (예: 막쿠마, 한가름)" />
           </div>
           <button class="btn" id="btnClear">지우기</button>
         </div>
         <div class="list" id="petList"></div>
       </div>
     </div>
-    <p class="muted" style="margin-top:8px">팁: 초성만 두세 번 눌러도 후보가 빠르게 걸러집니다. (예: 반기노 = <span class="kbd">ㅂ</span>→<span class="kbd">ㄱ</span>)</p>
+    <p class="muted" style="margin-top:8px">팁: 초성만 두세 번 눌러도 후보가 빠르게 걸러집니다. (예: 막쿠마 = <span class="kbd">ㅁ</span>→<span class="kbd">ㄱ</span>)</p>
   </section>
 
   <!-- 우: 표기 S0 / Sg + 관측 입력 -->
   <section class="card">
-    <h3>② 표기치 & 관측치 입력</h3>
+    <h3>② 소숫점 & 초기치 입력</h3>
 
     <div class="row">
       <div class="col">
-        <label>S펫 기준 초기치 S0 (체/공/방/순)</label>
+        <label>S급 기준 소숫점 (체/공/방/순)</label>
         <div class="row">
           <div class="col"><input type="number" id="s0_hp"  step="0.01" placeholder="—" readonly /></div>
           <div class="col"><input type="number" id="s0_atk" step="0.01" placeholder="—" readonly /></div>
@@ -184,7 +184,7 @@
           <div class="col"><input type="number" id="s0_agi" step="0.01" placeholder="—" readonly /></div>
         </div>
 
-        <label style="margin-top:10px">S펫 기준 성장치 Sg (체/공/방/순)</label>
+        <label style="margin-top:10px">S급 기준 성장률 (체/공/방/순)</label>
         <div class="row">
           <div class="col"><input type="number" id="sg_hp"  step="0.01" placeholder="—" readonly /></div>
           <div class="col"><input type="number" id="sg_atk" step="0.01" placeholder="—" readonly /></div>
@@ -198,7 +198,7 @@
 
     <div class="row">
       <div class="col">
-        <label>내 펫 레벨1 관측 표기치 (정수) — 체/공/방/순</label>
+        <label>페트 레벨 1 초기치 — 체/공/방/순</label>
         <div class="row">
           <div class="col">
             <input type="number" id="obs_hp"  step="1" />
@@ -270,7 +270,7 @@
       <div class="row">
         <div class="col"><span class="muted">총 경우의 수:</span> <span class="badge" id="totMatches">—</span></div>
         <div class="col"><span class="muted">환각 매칭:</span> <span class="badge" id="rank8Matches">—</span></div>
-        <div class="col"><span class="muted">전수(고정):</span> <span class="badge">178,750</span></div>
+        <!-- <div class="col"><span class="muted">전수(고정):</span> <span class="badge">178,750</span></div> -->
       </div>
     </div>
 
