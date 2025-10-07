@@ -93,6 +93,46 @@
   .imgbox{width:100%; aspect-ratio: 16/9; border:1px dashed #334055; border-radius:12px; display:grid; place-items:center; background:#0d1117; overflow:hidden;}
   .imgbox img{width:100%; height:100%; object-fit:cover; display:block}
   .stepper{display:flex; gap:6px; margin-top:6px}
+
+  /* 라이트 모드 스타일 */
+  body.light {
+    --bg:#f8f9fa; 
+    --panel:#ffffff; 
+    --muted:#6c757d; 
+    --accent:#0d6efd;
+    --ok:#198754; 
+    --warn:#ffc107; 
+    --bad:#dc3545; 
+    --chip:#e9ecef;
+    --ring:#dee2e6; 
+    --text:#212529; 
+    --highlight:#000;
+    --ring:#495057;
+  }
+  body.light{
+    background: var(--bg);
+  }
+  body.light .card, body.light header{
+    border-color: #dee2e6;
+    box-shadow: 0 6px 24px rgba(0,0,0,.08);
+  }
+  body.light input[type="number"], 
+  body.light input[type="text"],
+  body.light .list {
+    background: #f8f9fa;
+    border-color: #ced4da;
+  }
+  body.light .item:hover{background:#e9ecef}
+  body.light .item.selected{ background:#dee2e6; outline-color:#adb5bd; }
+  body.light .btn{ background:#e9ecef; border-color:#ced4da; color: var(--text); }
+  body.light .btn:hover{filter:brightness(.95)}
+  body.light .btn.primary{ background:linear-gradient(180deg,#0d6efd,#0a58ca); border-color:transparent; color:white;}
+  body.light .chip{ background:#f8f9fa; border-color:#ced4da; }
+  body.light .kbd { background: #e9ecef; border-color: #adb5bd; }
+  body.light .ring::after { background: #f0f2f5; }
+  body.light .badge { background: #e9ecef; border-color: #ced4da; color: var(--text);}
+  body.light .floating-tip, body.light .floating-tip::after { background: #fff; color: #212529; border-color: #dee2e6;}
+  body.light .table th, body.light .table td { border-bottom-color: #dee2e6; }
 </style>
 </head>
 <body>
@@ -100,6 +140,7 @@
   <div class="brand">꼬비아빠 놀이터</div>
   <div class="ver">
     <span>데이터 기준 2025.10.07</span>
+    <button id="theme-toggle" class="btn ghost">라이트 모드</button>
   </div>
 </header>
 
@@ -245,7 +286,7 @@
     <div class="imgbox">
       <img id="dinoImg" src="https://raw.githubusercontent.com/Kokudas/Kokudas.github.io/main/67269_179791_1130-Photoroom.png" alt="StoneAge Dino" loading="lazy" decoding="async"/>
     </div>
-    <p class="muted" style="margin-top:8px">Data by. 꼬비아빠</p>
+    <p class="muted" style="margin-top:8px"> Data by. 꼬비아빠</p>
   </section>
 </div>
 
@@ -349,7 +390,6 @@ const kkobyPetData = [
     {"name":"기비노","initnum":24,"hp":25,"atk":39,"def":13,"agi":21},
     {"name":"프로돈","initnum":25,"hp":36,"atk":39,"def":17,"agi":25},
     {"name":"메카반보로","initnum":23,"hp":31,"atk":43,"def":20,"agi":24},
-    {"name":"환얀기로","initnum":27,"hp":28,"atk":36,"def":17,"agi":21,"rank":495},
     {"name":"쿠링","initnum":19,"hp":23,"atk":20,"def":22,"agi":24},
     {"name":"쿠쿠르","initnum":20,"hp":24,"atk":20,"def":19,"agi":26},
     {"name":"포링","initnum":18,"hp":22,"atk":20,"def":18,"agi":24},
@@ -484,7 +524,6 @@ const kkobyPetData = [
     {"name":"흑카키","initnum":18,"hp":23,"atk":24,"def":15,"agi":40},
     {"name":"쥬키","initnum":19,"hp":19,"atk":25,"def":10,"agi":32},
     {"name":"다르쿠","initnum":20,"hp":23,"atk":26,"def":8,"agi":36},
-    {"name":"환카키","initnum":20,"hp":18,"atk":23,"def":11,"agi":34,"rank":555},
     {"name":"오가로스","initnum":24,"hp":30,"atk":37,"def":28,"agi":20},
     {"name":"오르곤","initnum":26,"hp":33,"atk":38,"def":22,"agi":24},
     {"name":"모가로스","initnum":25,"hp":27,"atk":40,"def":19,"agi":28},
@@ -1052,42 +1091,54 @@ document.addEventListener('click', (e)=>{
   const curr=parseInt(input.value||"0",10); input.value=String(curr+delta);
 });
 
-/* ========= 엔진(합산 후 floor) ========= */
-function enumerate_jjyal(pku, obs){
+/* ========= 엔진(합산 후 floor) - 꼬비아빠 로직 ========= */
+function enumerate_kkoby(pku, obs){
   const k = new Decimal(pku.k);
   const fac = k.dividedBy(100);
-  // 엔진에서는 순수 성장률 u를 사용해야 합니다.
   const u = pku.u;
 
   let matches = 0, rank8 = 0;
   const dist = {};
 
-  for(let ar=-2; ar<=2; ar++){
-    for(let dr=-2; dr<=2; dr++){
-      for(let gr=-2; gr<=2; gr++){
-        for(let hr=-2; hr<=2; hr++){
-          for(let ab=0; ab<=10; ab++){
-            for(let db=0; db<=10; db++){
-              for(let gb=0; gb<=10; gb++){
-                const hb = 10 - ab - db - gb;
-                if(hb < 0 || hb > 10) continue;
+  const baseCnt = 5;
+  const baseInit = -2;
 
-                // 순수 성장률 u에 베이스, 보너스를 더해서 계산
+  for(let hr=baseInit; hr<baseInit+baseCnt; hr++){
+    for(let ar=baseInit; ar<baseInit+baseCnt; ar++){
+      for(let dr=baseInit; dr<baseInit+baseCnt; dr++){
+        for(let gr=baseInit; gr<baseInit+baseCnt; gr++){
+          for(let hb=0; hb<=10; hb++){
+            for(let ab=0; ab<=10; ab++){
+              for(let db=0; db<=10; db++){
+                const gb = 10 - hb - ab - db;
+                if(gb < 0 || gb > 10) continue;
+
+                const baseH = new Decimal(u.hp + hr + hb);
                 const baseA = new Decimal(u.atk + ar + ab);
                 const baseD = new Decimal(u.def + dr + db);
                 const baseG = new Decimal(u.agi + gr + gb);
-                const baseH = new Decimal(u.hp  + hr + hb);
 
-                const iA = baseA.times(fac), iD = baseD.times(fac), iG = baseG.times(fac), iH = baseH.times(fac);
+                const iH = baseH.times(fac);
+                const iA = baseA.times(fac);
+                const iD = baseD.times(fac);
+                const iG = baseG.times(fac);
+                
+                // 꼬비아빠 계산기 로직: 각 스탯 계산 시 preciseRound(Math.round(num * 1e12) / 1e12) 적용
+                const preciseRound = (num) => new Decimal(num.toPrecision(15)).toDP(12);
 
-                const calcAtk = iH.times(0.1).plus(iA).plus(iD.times(0.1)).plus(iG.times(0.05)).floor().toNumber();
-                const calcDef = iH.times(0.1).plus(iA.times(0.1)).plus(iD).plus(iG.times(0.05)).floor().toNumber();
-                const calcAgi = iG.floor().toNumber();
-                const calcHp  = iH.times(4).plus(iA).plus(iD).plus(iG).floor().toNumber();
+                const r_hp = preciseRound(iH);
+                const r_atk = preciseRound(iA);
+                const r_def = preciseRound(iD);
+                const r_agi = preciseRound(iG);
 
-                if(calcAtk===obs[1] && calcDef===obs[2] && calcAgi===obs[3] && calcHp===obs[0]){
+                const calcHp  = preciseRound(r_hp.times(4).plus(r_atk).plus(r_def).plus(r_agi)).floor().toNumber();
+                const calcAtk = preciseRound(r_hp.times(0.1).plus(r_atk).plus(r_def.times(0.1)).plus(r_agi.times(0.05))).floor().toNumber();
+                const calcDef = preciseRound(r_hp.times(0.1).plus(r_atk.times(0.1)).plus(r_def).plus(r_agi.times(0.05))).floor().toNumber();
+                const calcAgi = preciseRound(r_agi).floor().toNumber();
+
+                if(calcHp===obs[0] && calcAtk===obs[1] && calcDef===obs[2] && calcAgi===obs[3]){
                   matches++;
-                  const r = ar + dr + gr + hr;
+                  const r = hr + ar + dr + gr;
                   dist[r] = (dist[r]||0) + 1;
                   if(r === 8) rank8++;
                 }
@@ -1110,7 +1161,8 @@ btnCalc.addEventListener('click', ()=>{
   const row=GLOBAL_TABLE[selectedName]||{};
   if(!row?.k || !row?.u){ alert("이 펫은 데이터(k/u)가 등록되어 있지 않습니다."); return; }
   
-  const res = enumerate_jjyal({k: row.k, u: row.u}, obs);
+  // 꼬비아빠 계산 엔진 사용
+  const res = enumerate_kkoby({k: row.k, u: row.u}, obs);
   showKpis(res);
 });
 
@@ -1130,6 +1182,17 @@ btnClear.addEventListener('click', ()=>{
   petList.querySelectorAll('.item.selected').forEach(el=>el.classList.remove('selected'));
   selectedItemEl = null;
   renderPetList();
+});
+
+/* ========= 테마 토글 ========= */
+const themeToggleBtn = document.getElementById('theme-toggle');
+themeToggleBtn.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    if (document.body.classList.contains('light')) {
+        themeToggleBtn.textContent = '다크 모드';
+    } else {
+        themeToggleBtn.textContent = '라이트 모드';
+    }
 });
 
 /* ========= 부팅 ========= */
