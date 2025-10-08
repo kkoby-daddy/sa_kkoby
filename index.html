@@ -46,6 +46,7 @@
   .grid{ max-width:1100px; margin:20px auto; padding:0 16px; display:grid; gap:16px; grid-template-columns: 1fr 1fr; }
   @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
   .card{background:var(--panel); border:1px solid #232a36; border-radius:14px; padding:16px; box-shadow:0 6px 24px rgba(0,0,0,.25);}
+  .full-width { grid-column: 1 / -1; }
   .card h3{margin:4px 0 12px 0; font-size:16px}
   .row{display:flex; gap:8px; flex-wrap:wrap}
   .col{flex:1 1 0}
@@ -90,8 +91,6 @@
   .badge{display:inline-block; min-width:34px; text-align:center; padding:2px 6px; border-radius:6px; background:#223; border:1px solid #356}
   .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
   .footer{max-width:1100px; margin:8px auto 30px; padding:0 16px; color:var(--muted); font-size:12px; text-align: center;}
-  .imgbox{width:100%; aspect-ratio: 16/9; border:1px dashed #334055; border-radius:12px; display:grid; place-items:center; background:#0d1117; overflow:hidden;}
-  .imgbox img{max-width:100%; max-height:100%; object-fit:contain; display:block}
   .stepper{display:flex; gap:6px; margin-top:6px}
 
   /* 라이트 모드 스타일 */
@@ -139,12 +138,22 @@
 <header>
   <div class="brand">꼬비아빠 놀이터</div>
   <div class="ver">
-    <span>데이터 기준 2025.10.07</span>
+    <span>데이터 기준 2025.10.08</span>
     <button id="theme-toggle" class="btn ghost">라이트 모드</button>
   </div>
 </header>
 
 <div class="grid">
+    <!-- 안내 -->
+    <section class="card full-width">
+        <h3>안내사항</h3>
+        <p class="muted" style="margin: 0; font-size: 14px;">
+          - 입력된 페트 능력치에는 오타가 있을 수 있으니 페트 조회 시 게임 내 페트의 초기치 및 성장률이 같은지 확인하세요. <br>
+          - 업데이트로 추가되는 페트와 기존 페트의 성장률 변경시 데이터가 다르게 나올 수 있습니다. <br>
+          - 특이사항 : 꼬비 / 남아 / 푸들(갈색) / 20.03.24 출생 / 중성화 O
+        </p>
+    </section>
+
   <!-- 좌: 펫 선택 -->
   <section class="card">
     <h3>① 페트 선택</h3>
@@ -172,7 +181,7 @@
 
   <!-- 우: 표기 S0 / Sg + 관측 입력 -->
   <section class="card">
-    <h3>② 소숫점 & 초기치 입력</h3>
+    <h3>② 능력치 확인 및 계산</h3>
 
     <div class="row">
       <div class="col">
@@ -239,9 +248,9 @@
     </div>
   </section>
 
-  <!-- 좌하단: KPI 강조 -->
-  <section class="card" id="resultCard">
-    <h3>③ 결과</h3>
+  <!-- 하단: KPI 강조 -->
+  <section class="card full-width" id="resultCard">
+    <h3>③ 계산 결과</h3>
     <div class="kpis">
       <div class="kpi">
         <div class="ring" id="ringSuccess" style="--p:0deg"></div>
@@ -279,21 +288,10 @@
       <div id="dist"></div>
     </details>
   </section>
-
-  <!-- 우하단: 이미지 공간 -->
-  <section class="card">
-    <h3>꼬비아빠 놀이터</h3>
-    <div class="imgbox">
-      <img id="HappyImg" src="https://raw.githubusercontent.com/kkoby-daddy/sa_kkoby/main/Happy.png" alt="Happy StoneAge" loading="lazy" decoding="async"/>
-    </div>
-    <p class="muted" style="margin-top:8px"> 데이터 입력 : 꼬비아빠</p>
-  </section>
 </div>
 
 <div class="footer">
-  <p>- 입력된 페트 능력치에는 오타가 있을 수 있으니 페트 조회 시 게임 내 페트의 초기치 및 성장률이 같은지 확인하세요. </p>
-  <p>- 업데이트로 추가되는 페트와 기존 페트의 성장률 변경시 데이터가 다르게 나올 수 있습니다. </p>
-  <p>- 특이사항 : 꼬비 / 남아 / 푸들(갈색) / 20.03.24 출생 / 중성화 O </p>
+  <p> Data by. 꼬비아빠</p>
 </div>
 
 <script>
@@ -1203,7 +1201,3 @@ themeToggleBtn.addEventListener('click', () => {
 </script>
 </body>
 </html>
-
-
-
-
