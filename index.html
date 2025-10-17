@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>꼬비아빠 놀이터</title>
+<title>꼬비아빠 놀이터 (기능 업그레이드)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
 <style>
   /* 바디 레벨 플로팅 툴팁 */
@@ -90,13 +90,13 @@
   @media (max-width: 720px){ .kpis{grid-template-columns: 1fr} }
   .kpi{ display:flex; gap:14px; align-items:center; border:1px solid #2a3040; border-radius:14px; padding:14px; background:radial-gradient(120px 120px at 20% -10%, #11224444, transparent); }
   
-  /* --- SVG Ring Styles --- */
+  /* --- SVG Ring Styles (from File 2) --- */
   .ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
   svg{ display:block; width:100%; height:100%; }
   .track{ stroke: var(--ring); fill:none; stroke-linecap: round; }
   .fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .25s ease, stroke-dashoffset .25s linear; }
   
-  /* --- HUD Styles --- */
+  /* --- HUD Styles (from File 2) --- */
   .hud { filter: drop-shadow(0 0 var(--glow) rgba(160,200,255,.6)); }
   .tail{ stroke: #9fc3ff; stroke-linecap: round; opacity:.7; fill:none; }
   .core{ stroke: #fff;     stroke-linecap: round; fill:none; }
@@ -261,6 +261,7 @@
     </div>
   </section>
 
+  <!-- START: '③ 결과 분석' 섹션 교체 (from File 2) -->
   <section class="card full-width" id="resultCard">
     <h3>③ 결과 분석</h3>
     <div class="kpis">
@@ -272,21 +273,21 @@
                 <circle id="succPath" cx="50" cy="50" r="45"/>
                 <mask id="succMask" maskUnits="userSpaceOnUse">
                   <circle id="succMaskStroke" cx="50" cy="50" r="45"
-                          fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"
+                          fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"
                           transform="rotate(-90 50 50)"
                           stroke-dasharray="0 1" stroke-dashoffset="0"/>
                 </mask>
               </defs>
     
-              <use href="#succPath" class="track" stroke-width="12" transform="rotate(-90 50 50)"/>
-              <use id="succFill" href="#succPath" class="fill" stroke-width="12"
+              <use href="#succPath" class="track" stroke-width="10" transform="rotate(-90 50 50)"/>
+              <use id="succFill" href="#succPath" class="fill" stroke-width="10"
                    transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
     
               <!-- HUD 이펙트(성공 링에만) -->
               <g id="succHUD" class="hud" mask="url(#succMask)">
-                <path id="succTail" class="tail" stroke-width="12"/>
-                <path id="succCore" class="core" stroke-width="8"/>
-                <circle id="succFlare" class="flare" r="4" cx="50" cy="5"/>
+                <path id="succTail" class="tail" stroke-width="10"/>
+                <path id="succCore" class="core" stroke-width="6"/>
+                <circle id="succFlare" class="flare" r="3" cx="50" cy="5"/>
               </g>
             </svg>
           </div>
@@ -301,8 +302,8 @@
           <div class="ringwrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
               <circle id="apPath" cx="50" cy="50" r="43" fill="none"/>
-              <use href="#apPath" class="track" stroke-width="12" transform="rotate(-90 50 50)"/>
-              <use id="apFill"  href="#apPath" class="fill"  stroke="#7fd4ff" stroke-width="12"
+              <use href="#apPath" class="track" stroke-width="10" transform="rotate(-90 50 50)"/>
+              <use id="apFill"  href="#apPath" class="fill"  stroke="#7fd4ff" stroke-width="10"
                    transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
             </svg>
           </div>
@@ -318,8 +319,8 @@
           <div class="ringwrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
               <circle id="trPath" cx="50" cy="50" r="43" fill="none"/>
-              <use href="#trPath" class="track" stroke-width="12" transform="rotate(-90 50 50)"/>
-              <use id="trFill"  href="#trPath" class="fill" stroke="#999" stroke-width="12"
+              <use href="#trPath" class="track" stroke-width="10" transform="rotate(-90 50 50)"/>
+              <use id="trFill"  href="#trPath" class="fill" stroke="#999" stroke-width="10"
                    transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
             </svg>
           </div>
@@ -340,6 +341,7 @@
       <div id="dist"></div>
     </details>
   </section>
+  <!-- END: '③ 결과 분석' 섹션 교체 -->
 </div>
 
 <div class="footer">
@@ -1298,7 +1300,6 @@ const s0hp = document.getElementById('s0_hp'), s0atk= document.getElementById('s
 const sghp = document.getElementById('sg_hp'), sgatk= document.getElementById('sg_atk'), sgdef= document.getElementById('sg_def'), sgagi= document.getElementById('sg_agi');
 const obshp = document.getElementById('obs_hp'), obsatk= document.getElementById('obs_atk'), obsdef= document.getElementById('obs_def'), obsagi= document.getElementById('obs_agi');
 const kpiSuccess = document.getElementById('kpiSuccess'), kpiAppear  = document.getElementById('kpiAppear'), kpiTries = document.getElementById('kpiTries');
-const ringSuccess= document.getElementById('ringSuccess'), ringAppear = document.getElementById('ringAppear');
 const totMatches = document.getElementById('totMatches'), rank8Matches = document.getElementById('rank8Matches');
 const distBox = document.getElementById('dist');
 const btnCalc = document.getElementById('btnCalc'), btnReset= document.getElementById('btnReset'), btnClear= document.getElementById('btnClear');
@@ -1331,7 +1332,7 @@ CHO.forEach(c=>{
 });
 petSearch.addEventListener('input', renderPetList);
 
-/* ========= 목록 ========= */
+/* ========= 목록 (Badge 기능 추가) ========= */
 function renderPetList(){
   const kw = (petSearch.value||"").trim();
   const names = ALL_NAMES;
@@ -1350,7 +1351,19 @@ function renderPetList(){
   list.forEach(n=>{
     const div=document.createElement('div'); div.className='item';
     const left=document.createElement('div'); left.textContent = n;
+    
+    // START: Badge 추가
+    const right=document.createElement('div'); right.className="tags";
+    const tag1=document.createElement('span');
+    const isRegistered = !!GLOBAL_TABLE[n];
+    tag1.className = 'tag ' + (isRegistered ? 'ok' : 'warn');
+    tag1.textContent = isRegistered ? '등록됨' : '미등록';
+    right.appendChild(tag1);
+    // END: Badge 추가
+
     div.appendChild(left);
+    div.appendChild(right); // Badge를 div에 추가
+    
     div.addEventListener('click', ()=>{
       if(selectedItemEl) selectedItemEl.classList.remove('selected');
       div.classList.add('selected');
@@ -1389,7 +1402,7 @@ function selectPetName(n){
   showKpis(null);
 }
 
-/* ========= KPI 렌더 ========= */
+/* ========= START: KPI 렌더링 로직 교체 (from File 2) ========= */
 function getCSS(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function resolveR(el){
   const rSelf = parseFloat(el.getAttribute('r'));
@@ -1547,6 +1560,8 @@ function showKpis(res){
   html += `</tbody></table>`;
   distBox.innerHTML = html;
 }
+/* ========= END: KPI 렌더링 로직 교체 ========= */
+
 
 /* ========= 관측치 편의 ========= */
 function enableWheelStep(el){
@@ -1566,7 +1581,7 @@ document.addEventListener('click', (e)=>{
   const curr=parseInt(input.value||"0",10); input.value=String(curr+delta);
 });
 
-/* ========= 엔진(합산 후 floor) - 꼬비아빠 로직 ========= */
+/* ========= 엔진(합산 후 floor) - 꼬비아빠 로직 (원본 유지) ========= */
 function enumerate_kkoby(pku, obs){
   const k = new Decimal(pku.k);
   const fac = k.dividedBy(100);
