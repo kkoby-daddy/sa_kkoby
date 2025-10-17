@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>꼬비아빠 놀이터</title>
+<title>Happy 서버 페트 계산기 (25.10.17)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
 <style>
   /* 바디 레벨 플로팅 툴팁 */
@@ -65,11 +65,6 @@
   .btn.primary{ background:linear-gradient(180deg,#2b71ff,#1d56cc); border-color:transparent; color:white;}
   .btn.ghost{ background:transparent;}
   .btn-sm{padding:6px 10px; font-size:12px; border-radius:8px}
-  .btn-group {display: flex;}
-  .btn-group .btn{ border-radius: 0; margin-left: -1px; }
-  .btn-group .btn:first-child{ border-top-left-radius: 10px; border-bottom-left-radius: 10px; margin-left: 0;}
-  .btn-group .btn:last-child{ border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
-  .btn-group .btn.active{ background:linear-gradient(180deg,#2b71ff,#1d56cc); border-color:transparent; color:white; filter: none; }
   .muted{color:var(--muted)}
   .chips{display:flex; gap:8px; flex-wrap:wrap}
   .chip{ background:var(--chip); color:#cfd6e3; border:1px solid #2b3242; border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; }
@@ -88,7 +83,7 @@
   .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
   @media (max-width: 720px){ .kpis{grid-template-columns: 1fr} }
   .kpi{ display:flex; gap:14px; align-items:center; border:1px solid #2a3040; border-radius:14px; padding:14px; background:radial-gradient(120px 120px at 20% -10%, #11224444, transparent); }
- .ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
+.ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
 svg{ display:block; width:100%; height:100%; }
 .track{ stroke: var(--ring); fill:none; stroke-linecap: round; }
 .fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .25s ease, stroke-dashoffset .25s linear; }
@@ -1425,6 +1420,76 @@ function selectPetName(n){
   showKpis(null);
 }
 
+/* ========= 목록 ========= */
+function renderPetList(){
+  const kw = (petSearch.value||"").trim();
+  const names = ALL_NAMES.length? ALL_NAMES : Object.keys(GLOBAL_TABLE);
+  const list = names.filter(n=>{
+    const a = kw? n.includes(kw): true;
+    const b = currentChosung? getChosung(n).startsWith(currentChosung): true;
+    return a && b;
+  });
+
+  petList.innerHTML="";
+  if(list.length===0){
+    const d=document.createElement('div'); d.className='item'; d.textContent='결과 없음';
+    petList.appendChild(d);
+    return;
+  }
+
+  list.forEach(n=>{
+    const div=document.createElement('div'); div.className='item';
+
+    const left=document.createElement('div'); left.textContent = n;
+    const right=document.createElement('div'); right.className="tags";
+
+    // 등록/미등록 배지
+    const tag1=document.createElement('span');
+    tag1.className='tag ' + (GLOBAL_TABLE[n]?'ok':'warn');
+    tag1.textContent = GLOBAL_TABLE[n] ? '등록됨' : '미등록';
+    right.appendChild(tag1);
+
+    // 8등급 보장 배지
+    const r8 = R8MAP[n];
+    if (r8 && (Array.isArray(r8.obs_100_rank8) ? r8.obs_100_rank8.length : (r8.length||0))) {
+      const sets = Array.isArray(r8.obs_100_rank8) ? r8.obs_100_rank8 : r8;
+      const tag2 = document.createElement('span');
+      tag2.className = 'tag rank8 tip';
+      tag2.textContent = '100%';
+
+      const maxShow = 20;
+      const preview = sets.slice(0, maxShow).map(a=>`(${a[0]},${a[1]},${a[2]},${a[3]})`).join(' · ');
+      const more = sets.length>maxShow ? ` 외 ${sets.length-maxShow}세트` : '';
+      const tipText = `8등급 보장 초기치\n${preview}${more}`;
+      tag2.setAttribute('data-tip', tipText);
+
+      tag2.tabIndex = 0;
+      const stop = (e)=>{ e.stopPropagation(); };
+      tag2.addEventListener('click', stop);
+      tag2.addEventListener('touchstart', stop, {passive:true});
+      tag2.addEventListener('click', ()=>{
+        tag2.classList.add('show');
+        setTimeout(()=>tag2.classList.remove('show'), 1800);
+      });
+
+      right.appendChild(tag2);
+    }
+
+    div.appendChild(left);
+    div.appendChild(right);
+    div.addEventListener('click', ()=>{
+      if(selectedItemEl) selectedItemEl.classList.remove('selected');
+      div.classList.add('selected');
+      selectedItemEl = div;
+      selectPetName(n);
+    });
+    if (n === selectedName) { div.classList.add('selected'); selectedItemEl = div; }
+    petList.appendChild(div);
+  });
+
+  renderChosungTokens();
+}
+  
 /* ========= KPI 렌더 ========= */
 function getCSS(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function resolveR(el){
@@ -1736,4 +1801,5 @@ btnModeNova.addEventListener('click', () => switchMode('nova'));
 </script>
 </body>
 </html>
+
 
