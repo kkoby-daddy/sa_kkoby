@@ -28,16 +28,15 @@
   :root{
     --bg:#0f1115; --panel:#161a22; --muted:#8a9099; --accent:#6aa0ff;
     --ok:#35c759; --warn:#ffb300; --bad:#ff5171; --chip:#232a36;
-    --ring:#1f2530; --text:#e8ecf3; --highlight:#fff;
-    --ring-size: 60px; --ring-thickness: 6px; --hud-speed: 120;
+    --ring:#1f2530; --text:#e8ecf3;  --ring-size: 60px; --ring-thickness: 10px;
+    --hud-speed: 120;             /* HUD 도는 속도(px/s) */ 
     --glow: 8px;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
     margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    background:var(--bg); color:var(--text);
-    transition: background-color .3s ease, color .3s ease;
+    background:linear-gradient(180deg,#0f1115 0%,#0c0f14 100%); color:var(--text);
   }
   header{
     display:flex; align-items:center; justify-content:space-between;
@@ -89,25 +88,75 @@
   .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
   @media (max-width: 720px){ .kpis{grid-template-columns: 1fr} }
   .kpi{ display:flex; gap:14px; align-items:center; border:1px solid #2a3040; border-radius:14px; padding:14px; background:radial-gradient(120px 120px at 20% -10%, #11224444, transparent); }
-  
-  /* --- SVG Ring Styles --- */
-  .ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
-  svg{ display:block; width:100%; height:100%; }
-  .track{ stroke: var(--ring); fill:none; stroke-linecap: round; }
-  .fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .25s ease, stroke-dashoffset .25s linear; }
-  
-  /* --- HUD Styles --- */
-  .hud { filter: drop-shadow(0 0 var(--glow) rgba(160,200,255,.6)); }
-  .tail{ stroke: #9fc3ff; stroke-linecap: round; opacity:.7; fill:none; }
-  .core{ stroke: #fff;     stroke-linecap: round; fill:none; }
-  .flare{ fill: #fff; opacity:.95; }
-  
-  #kpiSuccess, #kpiAppear, #kpiTries {
-    display:inline-block;
-    min-width: 9ch;
-    font-variant-numeric: tabular-nums;
-  }
-  #kpiTries { min-width: 6ch; }
+ .ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
+svg{ display:block; width:100%; height:100%; }
+.track{ stroke: var(--ring); fill:none; stroke-linecap: round; }
+.fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .25s ease, stroke-dashoffset .25s linear; }
+
+/* 성공 링 HUD */
+.hud { filter: drop-shadow(0 0 var(--glow) rgba(160,200,255,.6)); }
+.tail{ stroke: #9fc3ff; stroke-linecap: round; opacity:.7; fill:none; }
+.core{ stroke: #fff;      stroke-linecap: round; fill:none; }
+.flare{ fill: #fff; opacity:.95; }
+  /* 도넛(기본 게이지) — 크기 고정 + 마스크로 속빈 원 */
+.ring{
+  width: var(--ring-size);
+  height: var(--ring-size);
+  flex: 0 0 var(--ring-size);
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+  isolation: isolate;
+  --p: 0deg; /* JS에서 진행각 설정 */
+  background: conic-gradient(var(--accent) 0 var(--p), var(--ring) 0);
+  /* 속 비우기(도넛) 마스크 */
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-thickness)), #000 0);
+          mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-thickness)), #000 0);
+}
+
+
+/* ★ 성공 링에만 HUD 스윕 */
+#ringSuccess::after{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:50%;
+  pointer-events:none;
+  opacity: calc(var(--sweep-on, 0) * var(--sweep-opacity)); /* 진행 0%면 완전 숨김 */
+  filter: blur(var(--sweep-blur));
+  will-change: transform;
+  animation: ring-sweep var(--sweep-speed) linear infinite;
+  /* 얇은 빛 웨지 패턴 */
+  background:
+    repeating-conic-gradient(
+      from -90deg,
+      rgba(255,255,255,0)   0deg 6deg,
+      rgba(255,255,255,.9)  6deg 7.2deg,
+      rgba(255,255,255,0)  7.2deg 14.4deg
+    );
+  /* (1) 도넛 모양으로 구멍 + (2) 진행각까지만 표시 */
+  -webkit-mask-image:
+    radial-gradient(farthest-side, transparent calc(100% - var(--ring-thickness)), #000 0),
+    conic-gradient(#000 0 calc(var(--p) + .0001deg), transparent 0); /* 0deg 버그회피용 +ε */
+  -webkit-mask-composite: source-in;
+          mask-image:
+    radial-gradient(farthest-side, transparent calc(100% - var(--ring-thickness)), #000 0),
+    conic-gradient(#000 0 calc(var(--p) + .0001deg), transparent 0);
+          mask-composite: intersect;
+}
+
+@keyframes ring-sweep{ to { transform: rotate(360deg); } }
+
+/* (선택) 숫자 폭 고정해서 레이아웃 흔들림 방지 */
+#kpiSuccess, #kpiAppear{ display:inline-block; min-width: 9ch; font-variant-numeric: tabular-nums; }
+#kpiTries{  display:inline-block; min-width: 6ch; font-variant-numeric: tabular-nums; }
+
+
+@media (prefers-reduced-motion: reduce){
+  #ringSuccess::after{ animation: none; opacity: .25; }
+}
+
+
+
 
   .kpi strong{font-size:20px; color:var(--highlight)}
   .kpi small{display:block; color:var(--muted)}
@@ -116,35 +165,22 @@
   .table th:first-child,.table td:first-child{text-align:left}
   .badge{display:inline-block; min-width:34px; text-align:center; padding:2px 6px; border-radius:6px; background:#223; border:1px solid #356}
   .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
-  .footer{max-width:1100px; margin:8px auto 30px; padding:0 16px; color:var(--muted); font-size:12px; text-align: center;}
+  .footer{max-width:1100px; margin:8px auto 30px; padding:0 16px; color:var(--muted); font-size:12px}
+  .imgbox{width:100%; aspect-ratio: 16/9; border:1px dashed #334055; border-radius:12px; display:grid; place-items:center; background:#0d1117; overflow:hidden;}
+  .imgbox img{width:100%; height:100%; object-fit:cover; display:block}
   .stepper{display:flex; gap:6px; margin-top:6px}
-  
-  /* --- Transitions --- */
-  body, .card, header, input, .btn, .chip, .list, .item, .badge, .table th, .table td, hr {
-    transition: background-color .3s ease, color .3s ease, border-color .3s ease;
-  }
-
-  /* --- Light Mode --- */
-  body.light {
-    --bg: #e2e8f0; --panel: #ffffff; --muted: #64748b; --accent: #2563eb;
-    --ok: #16a34a; --warn: #f59e0b; --bad: #dc2626; --chip: #f1f5f9;
-    --ring: #cbd5e1; --text: #1e293b; --highlight: #000000;
-  }
-  body.light header{ background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); border-color: #d1d5db; }
-  body.light .card { border-color: #d1d5db; box-shadow: 0 6px 24px rgba(0,0,0,.07); }
-  body.light hr { border-top-color: #e2e8f0; }
-  body.light input[type="number"], body.light input[type="text"], body.light .list { background: #f8fafc; border-color: #cbd5e1; }
-  body.light .item:hover{background:#f1f5f9}
-  body.light .item.selected{ background:#e2e8f0; outline-color:#9ca3af; }
-  body.light .btn{ background:#f1f5f9; border-color:#cbd5e1; color: var(--text); }
-  body.light .btn:hover{filter:brightness(.98)}
-  body.light .btn.primary, body.light .btn-group .btn.active { background:linear-gradient(180deg,#2563eb,#1d4ed8); border-color:transparent; color:white; }
-  body.light .chip{ background:#f8fafc; border-color:#cbd5e1; }
-  body.light .kbd { background: #f1f5f9; border-color: #9ca3af; }
-  body.light .badge { background: #f1f5f9; border-color: #cbd5e1; color: var(--text);}
-  body.light .floating-tip, body.light .floating-tip::after { background: #fff; color: #1f2937; border-color: #d1d5db;}
-  body.light .table th, body.light .table td { border-bottom-color: #e2e8f0; }
-
+ 
+  /* 숫자 자릿수 고정 + 등폭 숫자 */
+#kpiSuccess, #kpiAppear{
+  display:inline-block;
+  min-width: 9ch;              /* "100.0000%" 정도를 수용 */
+  font-variant-numeric: tabular-nums;
+}
+#kpiTries{
+  display:inline-block;
+  min-width: 6ch;              /* "123.45" 정도 */
+  font-variant-numeric: tabular-nums;
+}
 </style>
 </head>
 <body>
@@ -1700,3 +1736,4 @@ btnModeNova.addEventListener('click', () => switchMode('nova'));
 </script>
 </body>
 </html>
+
