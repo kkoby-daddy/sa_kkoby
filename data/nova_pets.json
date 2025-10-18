@@ -1,4 +1,3 @@
-[
             {"name":"우리","initnum":10,"hp":20,"atk":12,"def":15,"agi":25},
             {"name":"두리","initnum":20,"hp":22,"atk":23,"def":11,"agi":23},
             {"name":"얼룩우리","initnum":15,"hp":22,"atk":17,"def":19,"agi":17},
@@ -290,4 +289,3 @@
             {"name":"해태","initnum":24,"hp":30,"atk":39,"def":22,"agi":25},
             {"name":"해치","initnum":24,"hp":25,"atk":34,"def":13,"agi":31},
             {"name":"도철","initnum":24,"hp":31,"atk":41,"def":20,"agi":24},
-        ]
