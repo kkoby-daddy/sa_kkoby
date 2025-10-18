@@ -90,13 +90,13 @@
   @media (max-width: 720px){ .kpis{grid-template-columns: 1fr} }
   .kpi{ display:flex; gap:14px; align-items:center; border:1px solid #2a3040; border-radius:14px; padding:14px; background:radial-gradient(120px 120px at 20% -10%, #11224444, transparent); }
   
-  /* --- SVG Ring Styles (from File 2) --- */
+  /* --- SVG Ring Styles --- */
   .ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
   svg{ display:block; width:100%; height:100%; }
   .track{ stroke: var(--ring); fill:none; stroke-linecap: round; }
   .fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .25s ease, stroke-dashoffset .25s linear; }
   
-  /* --- HUD Styles (from File 2) --- */
+  /* --- HUD Styles --- */
   .hud { filter: drop-shadow(0 0 var(--glow) rgba(160,200,255,.6)); }
   .tail{ stroke: #9fc3ff; stroke-linecap: round; opacity:.7; fill:none; }
   .core{ stroke: #fff;     stroke-linecap: round; fill:none; }
@@ -261,7 +261,6 @@
     </div>
   </section>
 
-  <!-- START: '③ 결과 분석' 섹션 교체 (from File 2) -->
   <section class="card full-width" id="resultCard">
     <h3>③ 결과 분석</h3>
     <div class="kpis">
@@ -283,7 +282,7 @@
               <use id="succFill" href="#succPath" class="fill" stroke-width="10"
                    transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
     
-              <!-- HUD 이펙트(성공 링에만) -->
+              <!-- HUD 이펙트 -->
               <g id="succHUD" class="hud" mask="url(#succMask)">
                 <path id="succTail" class="tail" stroke-width="10"/>
                 <path id="succCore" class="core" stroke-width="6"/>
@@ -297,7 +296,7 @@
           </div>
         </div>
     
-        <!-- 출현 확률 (게이지는 2%까지만 채움) -->
+        <!-- 출현 확률 -->
         <div class="kpi">
           <div class="ringwrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -314,7 +313,7 @@
           </div>
         </div>
     
-        <!-- 성공 기대값 (200↑ 항상 100%) -->
+        <!-- 성공 기대값 -->
         <div class="kpi">
           <div class="ringwrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -341,7 +340,6 @@
       <div id="dist"></div>
     </details>
   </section>
-  <!-- END: '③ 결과 분석' 섹션 교체 -->
 </div>
 
 <div class="footer">
@@ -349,10 +347,10 @@
 </div>
 
 <script>
-/* ========= Pet Data (Modified) ========= */
-// Use jsDelivr CDN for reliable, token-free access
-const happyDataUrl = 'https://raw.githubusercontent.com/kkoby-daddy/sa_kkoby/main/data/happy_pets.json';
-const novaDataUrl = 'https://raw.githubusercontent.com/kkoby-daddy/sa_kkoby/main/data/nova_pets.json';
+/* ========= Pet Data (GitHub Pages Final) ========= */
+// Use relative paths, which is the standard for GitHub Pages.
+const happyDataUrl = 'data/happy_pets.json';
+const novaDataUrl = 'data/nova_pets.json';
 
 // Create a skeleton for the petData object. The `list` will be populated by fetch().
 const petData = {
@@ -456,7 +454,6 @@ function calculateSg(u, e) {
 
 function buildPetTable() {
     GLOBAL_TABLE = {};
-    // Assumes petData[currentMode].list has been filled by init()
     const sourceData = petData[currentMode].list;
     if (!sourceData || sourceData.length === 0) {
         console.warn(`Data is empty for mode: ${currentMode}`);
@@ -869,8 +866,8 @@ btnClear.addEventListener('click', ()=>{
 function switchMode(mode) {
     if (currentMode === mode) return;
     
-    // Check if data is loaded
     if (!petData[mode] || !petData[mode].list || petData[mode].list.length === 0) {
+        // This check is now mostly for safety, as data is pre-loaded.
         alert(`${mode} 모드의 페트 데이터가 아직 로드되지 않았습니다.`);
         return;
     }
@@ -899,11 +896,9 @@ btnModeHappy.addEventListener('click', () => switchMode('happy'));
 btnModeNova.addEventListener('click', () => switchMode('nova'));
 
 
-/* ========= App Boot-up (Modified) ========= */
+/* ========= App Boot-up (Using GitHub Pages) ========= */
 (async function init(){
-  // Show loading state
   brandTitle.textContent = "데이터 로드 중...";
-  dataTimestamp.textContent = "v" + (petData.happy.timestamp || "...");
   
   try {
     const [happyResponse, novaResponse] = await Promise.all([
@@ -918,16 +913,14 @@ btnModeNova.addEventListener('click', () => switchMode('nova'));
     const happyList = await happyResponse.json();
     const novaList = await novaResponse.json();
 
-    // Populate the global petData object with the fetched data
     petData.happy.list = happyList;
     petData.nova.list = novaList;
 
-    // Once data is loaded, initialize the app
-    switchMode('happy'); // Set default mode to Happy
+    switchMode('happy');
 
   } catch (error) {
     console.error('Error during initialization:', error);
-    alert('페트 데이터를 불러오는 데 실패했습니다. 페이지를 새로고침 해보세요.\n' + error.message);
+    alert('페트 데이터를 불러오는 데 실패했습니다. 저장소가 공개(Public) 상태인지, GitHub Pages가 활성화되었는지 확인해주세요.\n' + error.message);
     brandTitle.textContent = "데이터 로드 실패";
   }
 })();
