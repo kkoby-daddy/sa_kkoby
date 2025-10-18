@@ -6,25 +6,6 @@
 <title>꼬비아빠 놀이터</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
 <style>
-  /* 바디 레벨 플로팅 툴팁 */
-  .floating-tip{
-    position: fixed; z-index: 9999; max-width: 360px;
-    background:#0b1320; color:#cfe1ff; border:1px solid #2b3a55;
-    border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.35;
-    box-shadow:0 8px 24px rgba(0,0,0,.35);
-    pointer-events:none; white-space:normal; word-break:keep-all;
-    opacity:0; transform: translateY(4px);
-    transition: opacity .12s ease, transform .12s ease;
-  }
-  .floating-tip.show{ opacity:1; transform: translateY(0); }
-  .floating-tip::after{
-    content:""; position:absolute; width:10px; height:10px; left:50%;
-    transform: translateX(-50%) rotate(45deg);
-    background:#0b1320; border-left:1px solid #2b3a55; border-top:1px solid #2b3a55;
-  }
-  .floating-tip[data-pos="top"]::after{ bottom:-5px; }
-  .floating-tip[data-pos="bottom"]::after{ top:-5px; transform: translateX(-50%) rotate(225deg); }
-
   :root{
     --bg:#0f1115; --panel:#161a22; --muted:#8a9099; --accent:#6aa0ff;
     --ok:#35c759; --warn:#ffb300; --bad:#ff5171; --chip:#232a36;
@@ -90,13 +71,13 @@
   @media (max-width: 720px){ .kpis{grid-template-columns: 1fr} }
   .kpi{ display:flex; gap:14px; align-items:center; border:1px solid #2a3040; border-radius:14px; padding:14px; background:radial-gradient(120px 120px at 20% -10%, #11224444, transparent); }
   
-  /* --- SVG Ring Styles (from File 2) --- */
+  /* --- SVG Ring Styles --- */
   .ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
   svg{ display:block; width:100%; height:100%; }
   .track{ stroke: var(--ring); fill:none; stroke-linecap: round; }
   .fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .25s ease, stroke-dashoffset .25s linear; }
   
-  /* --- HUD Styles (from File 2) --- */
+  /* --- HUD Styles --- */
   .hud { filter: drop-shadow(0 0 var(--glow) rgba(160,200,255,.6)); }
   .tail{ stroke: #9fc3ff; stroke-linecap: round; opacity:.7; fill:none; }
   .core{ stroke: #fff;     stroke-linecap: round; fill:none; }
@@ -142,7 +123,6 @@
   body.light .chip{ background:#f8fafc; border-color:#cbd5e1; }
   body.light .kbd { background: #f1f5f9; border-color: #9ca3af; }
   body.light .badge { background: #f1f5f9; border-color: #cbd5e1; color: var(--text);}
-  body.light .floating-tip, body.light .floating-tip::after { background: #fff; color: #1f2937; border-color: #d1d5db;}
   body.light .table th, body.light .table td { border-bottom-color: #e2e8f0; }
 
 </style>
@@ -261,7 +241,6 @@
     </div>
   </section>
 
-  <!-- START: '③ 결과 분석' 섹션 교체 (from File 2) -->
   <section class="card full-width" id="resultCard">
     <h3>③ 결과 분석</h3>
     <div class="kpis">
@@ -341,7 +320,6 @@
       <div id="dist"></div>
     </details>
   </section>
-  <!-- END: '③ 결과 분석' 섹션 교체 -->
 </div>
 
 <div class="footer">
@@ -1194,14 +1172,6 @@ let GLOBAL_TABLE = {};
 let ALL_NAMES = [];
 let currentMode = '';
 
-/* ========= 유틸 ========= */
-function fmtPct(x){
-  if(!Number.isFinite(x)) return "—%";
-  if(x === 0) return "0.0000%";
-  if(x < 0.001) return x.toFixed(6) + "%";
-  return x.toFixed(4) + "%";
-}
-
 /* ========= 초성(문자 → 초성) 유틸 ========= */
 const CHO_CODE = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 const CHO_SIMPLE = (c)=>({"ㄲ":"ㄱ","ㄸ":"ㄷ","ㅃ":"ㅂ","ㅆ":"ㅅ","ㅉ":"ㅈ"}[c]||c);
@@ -1402,7 +1372,7 @@ function selectPetName(n){
   showKpis(null);
 }
 
-/* ========= START: KPI 렌더링 로직 교체 (from File 2) ========= */
+/* ========= KPI 렌더링 로직 ========= */
 function getCSS(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function resolveR(el){
   const rSelf = parseFloat(el.getAttribute('r'));
@@ -1560,8 +1530,6 @@ function showKpis(res){
   html += `</tbody></table>`;
   distBox.innerHTML = html;
 }
-/* ========= END: KPI 렌더링 로직 교체 ========= */
-
 
 /* ========= 관측치 편의 ========= */
 function enableWheelStep(el){
@@ -1715,4 +1683,3 @@ btnModeNova.addEventListener('click', () => switchMode('nova'));
 </script>
 </body>
 </html>
-
