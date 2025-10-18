@@ -6,31 +6,10 @@
 <title>꼬비아빠 놀이터</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
 <style>
-  /* 바디 레벨 플로팅 툴팁 */
-  .floating-tip{
-    position: fixed; z-index: 9999; max-width: 360px;
-    background:#0b1320; color:#cfe1ff; border:1px solid #2b3a55;
-    border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.35;
-    box-shadow:0 8px 24px rgba(0,0,0,.35);
-    pointer-events:none; white-space:normal; word-break:keep-all;
-    opacity:0; transform: translateY(4px);
-    transition: opacity .12s ease, transform .12s ease;
-  }
-  .floating-tip.show{ opacity:1; transform: translateY(0); }
-  .floating-tip::after{
-    content:""; position:absolute; width:10px; height:10px; left:50%;
-    transform: translateX(-50%) rotate(45deg);
-    background:#0b1320; border-left:1px solid #2b3a55; border-top:1px solid #2b3a55;
-  }
-  .floating-tip[data-pos="top"]::after{ bottom:-5px; }
-  .floating-tip[data-pos="bottom"]::after{ top:-5px; transform: translateX(-50%) rotate(225deg); }
-
   :root{
     --bg:#0f1115; --panel:#161a22; --muted:#8a9099; --accent:#6aa0ff;
     --ok:#35c759; --warn:#ffb300; --bad:#ff5171; --chip:#232a36;
     --ring:#1f2530; --text:#e8ecf3; --highlight:#fff;
-    --ring-size: 60px; --ring-thickness: 6px; --hud-speed: 120;
-    --glow: 8px;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -63,7 +42,7 @@
   input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   .btn{ padding:10px 14px; border-radius:10px; border:1px solid #334055; cursor:pointer; background:#142033; color:#cfe1ff; font-weight:600; }
   .btn:hover{filter:brightness(1.1)}
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; } /* 비활성화 스타일 */
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
   .btn.primary{ background:linear-gradient(180deg,#2b71ff,#1d56cc); border-color:transparent; color:white;}
   .btn.ghost{ background:transparent;}
   .btn-sm{padding:6px 10px; font-size:12px; border-radius:8px}
@@ -86,31 +65,9 @@
   .tag{font-size:11px;border:1px solid #2b3242;border-radius:999px;padding:2px 8px}
   .tag.ok{border-color:#275a34; background:#102214; color:#35c759}
   .tag.warn{border-color:#7a5b0e; background:#241a05; color:#ffb300}
-  .tag.rank8{border-color:#2b4a82; background:#0d1a33; color:#88b5ff}
-  .tag.tip { cursor: help; } /* 툴팁 표시용 */
   .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
   @media (max-width: 720px){ .kpis{grid-template-columns: 1fr} }
   .kpi{ display:flex; gap:14px; align-items:center; border:1px solid #2a3040; border-radius:14px; padding:14px; background:radial-gradient(120px 120px at 20% -10%, #11224444, transparent); }
-
-  /* --- SVG Ring Styles --- */
-  .ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
-  svg{ display:block; width:100%; height:100%; }
-  .track{ stroke: var(--ring); fill:none; stroke-linecap: round; }
-  .fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .25s ease, stroke-dashoffset .25s linear; }
-
-  /* --- HUD Styles --- */
-  .hud { filter: drop-shadow(0 0 var(--glow) rgba(160,200,255,.6)); }
-  .tail{ stroke: #9fc3ff; stroke-linecap: round; opacity:.7; fill:none; }
-  .core{ stroke: #fff;     stroke-linecap: round; fill:none; }
-  .flare{ fill: #fff; opacity:.95; }
-
-  #kpiSuccess, #kpiAppear, #kpiTries {
-    display:inline-block;
-    min-width: 9ch;
-    font-variant-numeric: tabular-nums;
-  }
-  #kpiTries { min-width: 6ch; }
-
   .kpi strong{font-size:20px; color:var(--highlight)}
   .kpi small{display:block; color:var(--muted)}
   .table{width:100%; border-collapse:collapse; font-size:13px}
@@ -144,13 +101,11 @@
   body.light .chip{ background:#f8fafc; border-color:#cbd5e1; }
   body.light .kbd { background: #f1f5f9; border-color: #9ca3af; }
   body.light .badge { background: #f1f5f9; border-color: #cbd5e1; color: var(--text);}
-  body.light .floating-tip, body.light .floating-tip::after { background: #fff; color: #1f2937; border-color: #d1d5db;}
   body.light .table th, body.light .table td { border-bottom-color: #e2e8f0; }
-
 </style>
 </head>
 <body>
-<div class="floating-tip"></div> <header>
+<header>
   <div class="brand" id="brand-title">꼬비아빠 놀이터</div>
   <div class="ver">
     <span id="data-timestamp">데이터 로딩중...</span>
@@ -165,7 +120,7 @@
     <section class="card full-width">
         <h3>안내사항</h3>
         <p class="muted" style="margin: 0; font-size: 14px;">
-          - 입력된 페트 능력치에는 오타가 있을 수 있으니 페트 조회 시 게임 내 페트의 초기치 및 성장률이 같은지 확인하세요. <br>
+          - 페트 데이터는 외부 파일에서 불러옵니다. 초기 로딩이 약간 걸릴 수 있습니다.<br>
           - 업데이트로 추가되는 페트와 기존 페트의 성장률 변경시 데이터가 다르게 나올 수 있습니다. <br>
           - 특이사항 : 꼬비 / 남아 / 푸들(갈색) / 20.03.24 출생 / 중성화 O
         </p>
@@ -267,60 +222,18 @@
     <h3>③ 결과 분석</h3>
     <div class="kpis">
         <div class="kpi">
-          <div class="ringwrap">
-            <svg viewBox="0 0 100 100" aria-hidden="true">
-              <defs>
-                <circle id="succPath" cx="50" cy="50" r="45"/>
-                <mask id="succMask" maskUnits="userSpaceOnUse">
-                  <circle id="succMaskStroke" cx="50" cy="50" r="45"
-                          fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"
-                          transform="rotate(-90 50 50)"
-                          stroke-dasharray="0 1" stroke-dashoffset="0"/>
-                </mask>
-              </defs>
-
-              <use href="#succPath" class="track" stroke-width="10" transform="rotate(-90 50 50)"/>
-              <use id="succFill" href="#succPath" class="fill" stroke-width="10"
-                   transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
-
-              <g id="succHUD" class="hud" mask="url(#succMask)">
-                <path id="succTail" class="tail" stroke-width="10"/>
-                <path id="succCore" class="core" stroke-width="6"/>
-                <circle id="succFlare" class="flare" r="3" cx="50" cy="5"/>
-              </g>
-            </svg>
-          </div>
           <div>
             <strong id="kpiSuccess">—%</strong>
             <small>환각(8등급) 확률</small>
           </div>
         </div>
-
         <div class="kpi">
-          <div class="ringwrap">
-            <svg viewBox="0 0 100 100" aria-hidden="true">
-              <circle id="apPath" cx="50" cy="50" r="43" fill="none"/>
-              <use href="#apPath" class="track" stroke-width="10" transform="rotate(-90 50 50)"/>
-              <use id="apFill"  href="#apPath" class="fill"  stroke="#7fd4ff" stroke-width="10"
-                   transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
-            </svg>
-          </div>
           <div>
             <strong id="kpiAppear">—%</strong>
-            <span id="apBadge" class="badge" style="display:none">max 2%</span>
             <small>출현 확률</small>
           </div>
         </div>
-
         <div class="kpi">
-          <div class="ringwrap">
-            <svg viewBox="0 0 100 100" aria-hidden="true">
-              <circle id="trPath" cx="50" cy="50" r="43" fill="none"/>
-              <use href="#trPath" class="track" stroke-width="10" transform="rotate(-90 50 50)"/>
-              <use id="trFill"  href="#trPath" class="fill" stroke="#999" stroke-width="10"
-                   transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
-            </svg>
-          </div>
           <div>
             <strong id="kpiTries">—</strong>
             <small>성공 기대값(시도)</small>
@@ -338,43 +251,43 @@
       <div id="dist"></div>
     </details>
   </section>
-  </div>
+</div>
 
 <div class="footer">
   <p> Data by. 꼬비아빠 </p>
 </div>
 
 <script>
+// ▼▼▼ 1. Github에 올린 JSON 파일의 'Raw' 주소로 변경 ▼▼▼
+const happyDataUrl = 'https://raw.githubusercontent.com/kkoby-daddy/sa_kkoby/main/data/happy_pets.json';
+const novaDataUrl = 'https://raw.githubusercontent.com/kkoby-daddy/sa_kkoby/main/data/nova_pets.json';
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
 /* ========= 페트 데이터 (외부 파일에서 로드) ========= */
 let petData = {
-    happy: { timestamp: "", list: [] }, // 초기 빈 데이터 구조
-    nova: { timestamp: "", list: [] }
+    happy: { list: [] },
+    nova: { list: [] }
 };
-// ▼▼▼▼▼ 파일 경로 수정 ▼▼▼▼▼
-const happyDataUrl = './data/happy_pets.json'; // data 폴더 안의 파일 지정
-const novaDataUrl = './data/nova_pets.json';   // data 폴더 안의 파일 지정
-// ▲▲▲▲▲ 파일 경로 수정 ▲▲▲▲▲
 
 /* ========= 상수 ========= */
 const TOTAL = 178750;
 
-/* ========= 전역 ========= */
+/* ========= 전역 변수 ========= */
 let GLOBAL_TABLE = {};
 let ALL_NAMES = [];
 let currentMode = '';
 
-/* ========= 유틸 ========= */
-function fmtPct(x){
+/* ========= 유틸리티 함수 ========= */
+const fmtPct = (x) => {
   if(!Number.isFinite(x)) return "—%";
   if(x === 0) return "0.0000%";
   if(x < 0.001) return x.toFixed(6) + "%";
   return x.toFixed(4) + "%";
 }
 
-/* ========= 초성(문자 → 초성) 유틸 ========= */
 const CHO_CODE = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 const CHO_SIMPLE = (c)=>({"ㄲ":"ㄱ","ㄸ":"ㄷ","ㅃ":"ㅂ","ㅆ":"ㅅ","ㅉ":"ㅈ"}[c]||c);
-function getChosung(str){
+const getChosung = (str) => {
   let out="";
   for(const ch of str){
     const code = ch.charCodeAt(0);
@@ -385,8 +298,8 @@ function getChosung(str){
   return out;
 }
 
-/* ========= 데이터 변환 및 로드 ========= */
-function getRank(p) {
+/* ========= 데이터 처리 함수 ========= */
+const getRank = (p) => {
     if (p.rank) return p.rank;
     const totalStats = p.hp + p.atk + p.def + p.agi;
     if (totalStats >= 110) return 435;
@@ -399,34 +312,30 @@ function getRank(p) {
     return 575;
 }
 
-function calculateS0(k, u) {
+const calculateS0 = (k, u) => {
     const preciseRound = (num) => Math.round(num * 1e12) / 1e12;
     const fac = k / 100;
-    const vhp  = preciseRound((u.hp + 4.5) * fac);
-    const vatk = preciseRound((u.atk+ 4.5) * fac);
-    const vdef = preciseRound((u.def+ 4.5) * fac);
-    const vagi = preciseRound((u.agi+ 4.5) * fac);
+    const vhp  = (u.hp + 4.5) * fac;
+    const vatk = (u.atk+ 4.5) * fac;
+    const vdef = (u.def+ 4.5) * fac;
+    const vagi = (u.agi+ 4.5) * fac;
+
+    const hp = preciseRound(vhp), atk = preciseRound(vatk), def = preciseRound(vdef), agi = preciseRound(vagi);
 
     return {
-        hp: preciseRound((vhp * 4) + vatk + vdef + vagi),
-        atk: preciseRound((vhp * 0.1) + vatk + (vdef * 0.1) + (vagi * 0.05)),
-        def: preciseRound((vhp * 0.1) + (vatk * 0.1) + vdef + (vagi * 0.05)),
-        agi: preciseRound(vagi)
+        hp: preciseRound((hp * 4) + atk + def + agi),
+        atk: preciseRound((hp * 0.1) + atk + (def * 0.1) + (agi * 0.05)),
+        def: preciseRound((hp * 0.1) + (atk * 0.1) + def + (agi * 0.05)),
+        agi: preciseRound(agi)
     };
 }
 
-function calculateSg(u, e) {
+const calculateSg = (u, e) => {
     const preciseRound = (num) => Math.round(num * 1e12) / 1e12;
     const f = e / 10000;
-    const u_hp = u.hp + 4.5;
-    const u_atk = u.atk + 4.5;
-    const u_def = u.def + 4.5;
-    const u_agi = u.agi + 4.5;
+    const u_hp = u.hp + 4.5, u_atk = u.atk + 4.5, u_def = u.def + 4.5, u_agi = u.agi + 4.5;
 
-    const upHp  = preciseRound(u_hp  * f);
-    const upAtk = preciseRound(u_atk * f);
-    const upDef = preciseRound(u_def * f);
-    const upAgi = preciseRound(u_agi * f);
+    const upHp = u_hp * f, upAtk = u_atk * f, upDef = u_def * f, upAgi = u_agi * f;
 
     return {
         hp:  preciseRound((upHp * 4) + upAtk + upDef + upAgi),
@@ -436,28 +345,24 @@ function calculateSg(u, e) {
     };
 }
 
-// ▼▼▼▼▼ buildPetTable 수정: 오류 처리 강화 ▼▼▼▼▼
-function buildPetTable() {
+const buildPetTable = () => {
     GLOBAL_TABLE = {};
     const sourceList = petData[currentMode]?.list || [];
-    if (!Array.isArray(sourceList) || sourceList.length === 0) { // 배열 확인 추가
+    if (!Array.isArray(sourceList) || sourceList.length === 0) {
         console.warn(`${currentMode} 모드의 페트 리스트가 비어있거나 배열이 아닙니다.`);
         ALL_NAMES = [];
         return;
     }
     for (const p of sourceList) {
-        // 데이터 유효성 검사 추가
-        if (!p || typeof p.name === 'undefined' || typeof p.hp !== 'number' || typeof p.atk !== 'number' || typeof p.def !== 'number' || typeof p.agi !== 'number' || typeof p.initnum !== 'number') {
+        if (!p || typeof p.name === 'undefined' || typeof p.hp !== 'number') {
             console.warn("잘못된 형식의 페트 데이터 발견:", p);
-            continue; // 유효하지 않은 데이터 건너뛰기
+            continue;
         }
-        try { // 계산 중 오류 발생 대비
+        try {
             const u = { hp: p.hp, atk: p.atk, def: p.def, agi: p.agi };
             const k = p.initnum;
             const e = getRank(p);
-            const s0 = calculateS0(k, u);
-            const sg = calculateSg(u, e);
-            GLOBAL_TABLE[p.name] = { k, u, s0, sg };
+            GLOBAL_TABLE[p.name] = { k, u, s0: calculateS0(k, u), sg: calculateSg(u, e) };
         } catch(calcError) {
             console.error(`페트 ${p.name} 계산 중 오류:`, calcError, p);
         }
@@ -465,10 +370,9 @@ function buildPetTable() {
     ALL_NAMES = Object.keys(GLOBAL_TABLE).sort((a,b)=>a.localeCompare(b,'ko'));
     console.log(`${currentMode} 모드 테이블 빌드 완료 (${ALL_NAMES.length}개)`);
 }
-// ▲▲▲▲▲ buildPetTable 수정 ▲▲▲▲▲
 
 
-/* ========= DOM ========= */
+/* ========= DOM 요소 캐싱 ========= */
 const brandTitle = document.getElementById('brand-title');
 const dataTimestamp = document.getElementById('data-timestamp');
 const chosungBar = document.getElementById('chosung');
@@ -487,9 +391,8 @@ const btnModeNova = document.getElementById('mode-nova');
 
 let currentChosung="", selectedName=null, selectedRow=null, selectedItemEl=null;
 
-/* ========= 초성 키패드 ========= */
-const CHO = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-function renderChosungTokens(){
+/* ========= UI 렌더링 함수 ========= */
+const renderChosungTokens = () => {
   chosungTokens.innerHTML = "";
   for(const ch of currentChosung){
     const t = document.createElement('div');
@@ -497,46 +400,25 @@ function renderChosungTokens(){
     chosungTokens.appendChild(t);
   }
 }
-CHO.forEach(c=>{
-  const chip=document.createElement('div');
-  chip.className='chip'; chip.textContent=c;
-  chip.addEventListener('click', ()=>{
-    currentChosung += c;
-    renderPetList();
-    renderChosungTokens();
-    Array.from(chosungBar.children).forEach(el=>el.classList.remove('on'));
-    chip.classList.add('on');
-  });
-  chosungBar.appendChild(chip);
-});
-petSearch.addEventListener('input', renderPetList);
 
-/* ========= 목록 (Badge 기능 추가) ========= */
-function renderPetList(){
+const renderPetList = () => {
   const kw = (petSearch.value||"").trim();
-  const names = ALL_NAMES;
-  const list = names.filter(n=>{
-    const a = kw? n.includes(kw): true;
-    const b = currentChosung? getChosung(n).startsWith(currentChosung): true;
-    return a && b;
-  });
+  const list = ALL_NAMES.filter(n => (kw? n.includes(kw): true) && (currentChosung? getChosung(n).startsWith(currentChosung): true));
 
   petList.innerHTML="";
   if(list.length===0){
     const d=document.createElement('div'); d.className='item';
-    d.textContent='결과 없음 (또는 데이터 로딩 중...)'; // 문구 수정
+    d.textContent='결과 없음 (또는 데이터 로딩 중...)';
     petList.appendChild(d); return;
   }
 
   list.forEach(n=>{
     const div=document.createElement('div'); div.className='item';
     const left=document.createElement('div'); left.textContent = n;
-
     const right=document.createElement('div'); right.className="tags";
     const tag1=document.createElement('span');
-    const isRegistered = !!GLOBAL_TABLE[n];
-    tag1.className = 'tag ' + (isRegistered ? 'ok' : 'warn');
-    tag1.textContent = isRegistered ? '등록됨' : '미등록';
+    tag1.className = 'tag ok';
+    tag1.textContent = '등록됨';
     right.appendChild(tag1);
 
     div.appendChild(left);
@@ -554,183 +436,14 @@ function renderPetList(){
   renderChosungTokens();
 }
 
-/* ========= 펫 선택 ========= */
-function selectPetName(n){
-  selectedName=n;
-  selectedRow=GLOBAL_TABLE[n]||null;
-
-  if(selectedRow?.s0){
-    s0hp.value=selectedRow.s0.hp.toFixed(2); s0atk.value=selectedRow.s0.atk.toFixed(2);
-    s0def.value=selectedRow.s0.def.toFixed(2); s0agi.value=selectedRow.s0.agi.toFixed(2);
-  }else{ s0hp.value=s0atk.value=s0def.value=s0agi.value=""; }
-
-  if(selectedRow?.sg){
-    sghp.value=selectedRow.sg.hp.toFixed(2); sgatk.value=selectedRow.sg.atk.toFixed(2);
-    sgdef.value=selectedRow.sg.def.toFixed(2); sgagi.value=selectedRow.sg.agi.toFixed(2);
-  }else{ sghp.value=sgatk.value=sgdef.value=sgagi.value=""; }
-
-  if(selectedRow?.s0){
-    obshp.value = Math.floor(selectedRow.s0.hp)||"";
-    obsatk.value= Math.floor(selectedRow.s0.atk)||"";
-    obsdef.value= Math.floor(selectedRow.s0.def)||"";
-    obsagi.value= Math.floor(selectedRow.s0.agi)||"";
-  }else{
-    obshp.value=obsatk.value=obsdef.value=obsagi.value="";
-  }
-  showKpis(null);
-}
-
-/* ========= START: KPI 렌더링 로직 (수정 없음 - 이전과 동일) ========= */
-function getCSS(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-function resolveR(el){
-  const rSelf = parseFloat(el.getAttribute('r'));
-  if (isFinite(rSelf)) return rSelf;
-  const href = el.getAttribute('href') || el.getAttribute('xlink:href');
-  if (href && href[0]==='#'){
-    const ref = el.ownerSVGElement?.getElementById(href.slice(1));
-    const rr = parseFloat(ref && ref.getAttribute('r'));
-    if (isFinite(rr)) return rr;
-  }
-  return 45;
-}
-function makeRing(fillEl, maskStrokeEl, colorGetter){
-  if (!fillEl) return { setFrac: () => {}, C: 0 };
-  const r = resolveR(fillEl);
-  const C = 2 * Math.PI * r;
-  const baseStroke = fillEl.style.stroke || fillEl.getAttribute('stroke') || '#fff';
-  const strokeOn  = (col)=>{ fillEl.style.stroke = col || (colorGetter? colorGetter(): baseStroke); };
-  const strokeOff = ()=>{ fillEl.style.stroke = 'none'; };
-  const clamp01 = (x)=> (Number.isFinite(x)? Math.max(0, Math.min(1,x)) : 0);
-
-  function setFrac(frac){
-    const f = clamp01(frac);
-    if (f === 0){
-      fillEl.setAttribute('stroke-dasharray','0 1');
-      fillEl.setAttribute('stroke-dashoffset','0');
-      if(maskStrokeEl){
-        maskStrokeEl.setAttribute('stroke-dasharray','0 1');
-        maskStrokeEl.setAttribute('stroke-dashoffset','0');
-      }
-      strokeOff();
-      return;
-    }
-    const dash=C, gap=C, off=(1-f)*C;
-    fillEl.setAttribute('stroke-dasharray', `${dash} ${gap}`);
-    fillEl.setAttribute('stroke-dashoffset', `${off}`);
-    if(maskStrokeEl){
-      maskStrokeEl.setAttribute('stroke-dasharray', `${dash} ${gap}`);
-      maskStrokeEl.setAttribute('stroke-dashoffset', `${off}`);
-    }
-    strokeOn();
-  }
-  return { setFrac, C };
-}
-function polar0(cx,cy,r,deg){ const t=(deg-90)*Math.PI/180; return [cx + r*Math.cos(t), cy + r*Math.sin(t)]; }
-function arcPath0(cx,cy,r,deg0,deg1){
-  let s=deg0, e=deg1; while(e<s) e+=360;
-  const span=e-s;
-  if (Math.abs(span - 360) < 0.001) {
-      const midDeg = s + 180;
-      const [x0,y0]=polar0(cx,cy,r,s);
-      const [xm,ym]=polar0(cx,cy,r,midDeg);
-      const [x1,y1]=polar0(cx,cy,r,e);
-      return `M ${x0} ${y0} A ${r} ${r} 0 0 1 ${xm} ${ym} A ${r} ${r} 0 0 1 ${x1} ${y1}`;
-  }
-  const large=span>180?1:0;
-  const [x0,y0]=polar0(cx,cy,r,s), [x1,y1]=polar0(cx,cy,r,e);
-  return `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}`;
-}
-
-const succFill = document.getElementById('succFill');
-const succMaskStroke = document.getElementById('succMaskStroke');
-const { setFrac: _succSetFrac } = makeRing(succFill, succMaskStroke, ()=>getCSS('--accent'));
-const hud = document.getElementById('succHUD');
-const tail= document.getElementById('succTail');
-const core= document.getElementById('succCore');
-const flare= document.getElementById('succFlare');
-const SUCCR = resolveR(succFill);
-let head=0, run=false, lastTs=0, animFrameId = null;
-
-function tick(ts){
-  if(!run) return;
-  if(!lastTs) lastTs=ts;
-  const dt=(ts-lastTs)/1000; lastTs=ts;
-  const circum=2*Math.PI*SUCCR, pxPerSec=parseFloat(getCSS('--hud-speed'))||120;
-  const degPerSec=(pxPerSec/circum)*360;
-  head=(head + degPerSec*dt) % 360;
-
-  if (tail) {
-      const TAIL_SPAN=360*0.22;
-      tail.setAttribute('d', arcPath0(50,50,SUCCR, head-TAIL_SPAN, head));
-  }
-  if (core) {
-      const CORE_SPAN=360*0.10;
-      core.setAttribute('d', arcPath0(50,50,SUCCR, head-CORE_SPAN, head));
-  }
-  if (flare) {
-      const [fx,fy]=polar0(50,50,SUCCR, head);
-      flare.setAttribute('cx', fx.toFixed(2)); flare.setAttribute('cy', fy.toFixed(2));
-  }
-  animFrameId = requestAnimationFrame(tick);
-}
-function setSuccess(pct){
-  const f = Math.max(0, Math.min(100, Number(pct)||0))/100;
-  _succSetFrac(f);
-  if (kpiSuccess) kpiSuccess.textContent = (f*100).toFixed(4) + '%';
-  if(f<=0){
-    if (hud) hud.style.opacity=0;
-    run=false; lastTs=0; head=0;
-    cancelAnimationFrame(animFrameId);
-    if (tail) tail.setAttribute('d','');
-    if (core) core.setAttribute('d','');
-  }else{
-    if (hud) hud.style.opacity=1;
-    if(!run){ run=true; lastTs=0; animFrameId = requestAnimationFrame(tick); }
-  }
-}
-
-const apFill = document.getElementById('apFill');
-const { setFrac: _apSetFrac } = makeRing(apFill, null, ()=> '#7fd4ff');
-const apBadge = document.getElementById('apBadge');
-function setAppear(pctReal){
-  const p = Math.max(0, Number(pctReal)||0);
-  const frac = Math.min(p, 2) / 2;
-  _apSetFrac(frac);
-  if (kpiAppear) kpiAppear.textContent = p.toFixed(6) + '%';
-  if (apBadge) apBadge.style.display = (p>2 ? '' : 'none');
-}
-
-const trFill = document.getElementById('trFill');
-function colorByTries(x){
-  return (x<=5)  ? getCSS('--ok')
-       : (x<=20) ? getCSS('--warn')
-       :           getCSS('--bad');
-}
-const { setFrac: _trSetFrac } = makeRing(trFill, null, ()=> colorByTries(currTries));
-let currTries = 1;
-function setTries(t){
-  currTries = Math.max(1, Number(t)||1);
-  let frac;
-  if(currTries>=200) frac=1;
-  else{
-    const logMin = Math.log10(1);
-    const logMax = Math.log10(200);
-    const r = (Math.log10(currTries)-logMin) / (logMax-logMin);
-    frac = Math.max(0, Math.min(1, r || 0));
-  }
-  if (trFill) trFill.style.stroke = colorByTries(currTries);
-  _trSetFrac(frac);
-  if (kpiTries) kpiTries.textContent = (Number.isFinite(t)? Math.round(currTries) : '—');
-}
-
-function showKpis(res){
+const showKpis = (res) => {
   if(!res){
-    setSuccess(0);
-    setAppear(0);
-    setTries(1);
-    if (totMatches) totMatches.textContent = "—";
-    if (rank8Matches) rank8Matches.textContent = "—";
-    if (distBox) distBox.innerHTML = "";
+    kpiSuccess.textContent = "—%";
+    kpiAppear.textContent = "—%";
+    kpiTries.textContent = "—";
+    totMatches.textContent = "—";
+    rank8Matches.textContent = "—";
+    distBox.innerHTML = "";
     return;
   }
 
@@ -740,12 +453,11 @@ function showKpis(res){
   const successPct = matches ? (rank8/matches*100) : 0;
   const tries = successPct > 0 ? (100/successPct) : Infinity;
 
-  setSuccess(successPct);
-  setAppear(appear);
-  setTries(isFinite(tries) ? tries : 200);
-
-  if (totMatches) totMatches.textContent   = matches.toLocaleString();
-  if (rank8Matches) rank8Matches.textContent = rank8.toLocaleString();
+  kpiSuccess.textContent = fmtPct(successPct);
+  kpiAppear.textContent = fmtPct(appear);
+  kpiTries.textContent = (isFinite(tries) ? tries.toFixed(2) : "—");
+  totMatches.textContent   = matches.toLocaleString();
+  rank8Matches.textContent = rank8.toLocaleString();
 
   const entries = Object.entries(res.dist)
     .map(([r,c]) => ({r:parseInt(r,10), c}))
@@ -759,117 +471,80 @@ function showKpis(res){
     html += `<tr><td class="${cls}">${e.r}</td><td>${e.c.toLocaleString()}</td><td>${pct}%</td></tr>`;
   });
   html += `</tbody></table>`;
-  if (distBox) distBox.innerHTML = html;
+  distBox.innerHTML = html;
 }
-/* ========= END: KPI 렌더링 로직 교체 ========= */
 
-
-/* ========= 관측치 편의 ========= */
-function enableWheelStep(el){
-  el.addEventListener('wheel',(e)=>{
-    if(document.activeElement!==el) return;
-    e.preventDefault();
-    const delta = e.deltaY<0? 1 : -1;
-    const curr = parseInt(el.value||"0",10);
-    if (!isNaN(curr)) {
-        el.value = String(curr + delta);
-    } else {
-        el.value = String(delta > 0 ? 1 : -1);
-    }
-  }, {passive:false});
-}
-[obsatk,obshp,obsdef,obsagi].forEach(enableWheelStep);
-document.addEventListener('click', (e)=>{
-  const btn = e.target.closest('[data-delta][data-target]'); if(!btn) return;
-  const id = btn.getAttribute('data-target'); const delta = parseInt(btn.getAttribute('data-delta'),10);
-  const input=document.getElementById(id); if(!input) return;
-  const curr=parseInt(input.value||"0",10);
-  if (!isNaN(curr)) {
-      input.value=String(curr+delta);
-  } else {
-      input.value = String(delta > 0 ? 1 : -1);
-  }
-});
-
-/* ========= 엔진(합산 후 floor) - 꼬비아빠 로직 (원본 유지) ========= */
-function enumerate_kkoby(pku, obs){
+/* ========= 코어 계산 엔진 ========= */
+const enumerate_kkoby = (pku, obs) => {
+  Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
   const k = new Decimal(pku.k);
   const fac = k.dividedBy(100);
   const u = pku.u;
-
   let matches = 0, rank8 = 0;
   const dist = {};
-
-  const baseCnt = 5;
-  const baseInit = -2;
-
-  Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
+  const baseCnt = 5, baseInit = -2;
 
   for(let hr=baseInit; hr<baseInit+baseCnt; hr++){
-    for(let ar=baseInit; ar<baseInit+baseCnt; ar++){
-      for(let dr=baseInit; dr<baseInit+baseCnt; dr++){
-        for(let gr=baseInit; gr<baseInit+baseCnt; gr++){
-          for(let hb=0; hb<=10; hb++){
-            for(let ab=0; ab<=10; ab++){
-              for(let db=0; db<=10; db++){
-                const gb = 10 - hb - ab - db;
-                if(gb < 0 || gb > 10) continue;
+  for(let ar=baseInit; ar<baseInit+baseCnt; ar++){
+  for(let dr=baseInit; dr<baseInit+baseCnt; dr++){
+  for(let gr=baseInit; gr<baseInit+baseCnt; gr++){
+  for(let hb=0; hb<=10; hb++){
+  for(let ab=0; ab<=10; ab++){
+  for(let db=0; db<=10; db++){
+    const gb = 10 - hb - ab - db;
+    if(gb < 0 || gb > 10) continue;
 
-                const baseH = new Decimal(u.hp + hr + hb);
-                const baseA = new Decimal(u.atk + ar + ab);
-                const baseD = new Decimal(u.def + dr + db);
-                const baseG = new Decimal(u.agi + gr + gb);
+    const baseH = new Decimal(u.hp + hr + hb);
+    const baseA = new Decimal(u.atk + ar + ab);
+    const baseD = new Decimal(u.def + dr + db);
+    const baseG = new Decimal(u.agi + gr + gb);
 
-                const iH = baseH.times(fac); const iA = baseA.times(fac);
-                const iD = baseD.times(fac); const iG = baseG.times(fac);
+    const iH = baseH.times(fac), iA = baseA.times(fac), iD = baseD.times(fac), iG = baseG.times(fac);
+    const preciseRound = (num) => num.toDP(12, Decimal.ROUND_HALF_UP);
 
-                const preciseRound = (num) => num.toDP(12, Decimal.ROUND_HALF_UP);
+    const r_hp = preciseRound(iH), r_atk = preciseRound(iA), r_def = preciseRound(iD), r_agi = preciseRound(iG);
 
-                const r_hp = preciseRound(iH); const r_atk = preciseRound(iA);
-                const r_def = preciseRound(iD); const r_agi = preciseRound(iG);
+    const calcHp  = preciseRound(r_hp.times(4).plus(r_atk).plus(r_def).plus(r_agi)).floor().toNumber();
+    const calcAtk = preciseRound(r_hp.times('0.1').plus(r_atk).plus(r_def.times('0.1')).plus(r_agi.times('0.05'))).floor().toNumber();
+    const calcDef = preciseRound(r_hp.times('0.1').plus(r_atk.times('0.1')).plus(r_def).plus(r_agi.times('0.05'))).floor().toNumber();
+    const calcAgi = preciseRound(r_agi).floor().toNumber();
 
-                const calcHp  = preciseRound(r_hp.times(4).plus(r_atk).plus(r_def).plus(r_agi)).floor().toNumber();
-                const calcAtk = preciseRound(r_hp.times('0.1').plus(r_atk).plus(r_def.times('0.1')).plus(r_agi.times('0.05'))).floor().toNumber();
-                const calcDef = preciseRound(r_hp.times('0.1').plus(r_atk.times('0.1')).plus(r_def).plus(r_agi.times('0.05'))).floor().toNumber();
-                const calcAgi = preciseRound(r_agi).floor().toNumber();
-
-
-                if(calcHp===obs[0] && calcAtk===obs[1] && calcDef===obs[2] && calcAgi===obs[3]){
-                  matches++;
-                  const r = hr + ar + dr + gr;
-                  dist[r] = (dist[r]||0) + 1;
-                  if(r === 8) rank8++;
-                }
-              }
-            }
-          }
-        }
-      }
+    if(calcHp===obs[0] && calcAtk===obs[1] && calcDef===obs[2] && calcAgi===obs[3]){
+      matches++;
+      const r = hr + ar + dr + gr;
+      dist[r] = (dist[r]||0) + 1;
+      if(r === 8) rank8++;
     }
-  }
+  }}}}}}}}
   Decimal.set({ precision: 20 });
-
   return {matches, rank8, dist};
 }
 
-/* ========= 계산 및 리셋 ========= */
-btnCalc.addEventListener('click', ()=>{
-  if(!selectedName){ alert("펫을 먼저 선택하세요."); return; }
-  const obs=[obshp,obsatk,obsdef,obsagi].map(e=>parseInt(e.value,10));
-  if(obs.some(v=>!Number.isFinite(v))){ alert("관측 표기치(정수)를 모두 입력하세요."); return; }
+/* ========= 이벤트 핸들러 및 상태 관리 ========= */
+const selectPetName = (n) => {
+  selectedName=n;
+  selectedRow=GLOBAL_TABLE[n]||null;
 
-  const row=GLOBAL_TABLE[selectedName]||{};
-  if(!row || typeof row.k !== 'number' || !row.u || typeof row.u.hp !== 'number'){
-      alert("선택된 펫의 데이터(k/u)가 올바르지 않습니다. 데이터 로딩이 완료되었는지 확인하세요.");
-      console.error("Invalid pet data for calculation:", selectedName, row);
-      return;
-  }
+  if(selectedRow?.s0){
+    s0hp.value=selectedRow.s0.hp.toFixed(2); s0atk.value=selectedRow.s0.atk.toFixed(2);
+    s0def.value=selectedRow.s0.def.toFixed(2); s0agi.value=selectedRow.s0.agi.toFixed(2);
+  } else { s0hp.value=s0atk.value=s0def.value=s0agi.value=""; }
 
-  const res = enumerate_kkoby({k: row.k, u: row.u}, obs);
-  showKpis(res);
-});
+  if(selectedRow?.sg){
+    sghp.value=selectedRow.sg.hp.toFixed(2); sgatk.value=selectedRow.sg.atk.toFixed(2);
+    sgdef.value=selectedRow.sg.def.toFixed(2); sgagi.value=selectedRow.sg.agi.toFixed(2);
+  } else { sghp.value=sgatk.value=sgdef.value=sgagi.value=""; }
 
-function resetAll(){
+  if(selectedRow?.s0){
+    obshp.value = Math.floor(selectedRow.s0.hp)||"";
+    obsatk.value= Math.floor(selectedRow.s0.atk)||"";
+    obsdef.value= Math.floor(selectedRow.s0.def)||"";
+    obsagi.value= Math.floor(selectedRow.s0.agi)||"";
+  } else { obshp.value=obsatk.value=obsdef.value=obsagi.value=""; }
+  showKpis(null);
+}
+
+const resetAll = () => {
     selectedName=null; selectedRow=null;
     petSearch.value=""; currentChosung="";
     Array.from(chosungBar.children).forEach(el=>el.classList.remove('on'));
@@ -883,82 +558,59 @@ function resetAll(){
     showKpis(null);
 }
 
-btnReset.addEventListener('click', resetAll);
-
-btnClear.addEventListener('click', ()=>{
-  petSearch.value=""; currentChosung="";
-  Array.from(chosungBar.children).forEach(el=>el.classList.remove('on'));
-  if (selectedItemEl) {
-    selectedItemEl.classList.remove('selected');
-    selectedItemEl = null;
-  }
-  renderChosungTokens();
-  renderPetList();
-});
-
-/* ========= 모드 전환 (수정됨: async 및 fetch 사용) ========= */
+// ▼▼▼ 2. switchMode 함수 전체 수정 ▼▼▼
 async function switchMode(mode) {
-    if (currentMode === mode) return;
+    if (currentMode === mode && petData[mode].list.length > 0) return;
 
-    // 로딩 시작 표시
+    // 로딩 시작 UI
     btnModeHappy.disabled = true;
     btnModeNova.disabled = true;
-    brandTitle.textContent = `${mode.charAt(0).toUpperCase() + mode.slice(1)} 데이터 로딩 중...`;
+    const modeName = mode.charAt(0).toUpperCase() + mode.slice(1);
+    brandTitle.textContent = `${modeName} 데이터 로딩 중...`;
     dataTimestamp.textContent = "";
 
     currentMode = mode;
     const dataUrl = (mode === 'happy') ? happyDataUrl : novaDataUrl;
-    // 임시 타임스탬프 (나중에 JSON 파일 자체에 넣는 것을 고려)
-    // ▼▼▼▼▼ 타임스탬프는 예시로 남겨두되, 실제 값은 비워둠 ▼▼▼▼▼
-    const tempTimestamp = ""; // (예: "2025.10.18") - 필요시 실제 날짜 넣기
-    // ▲▲▲▲▲ 타임스탬프 수정 ▲▲▲▲▲
 
     try {
-        const response = await fetch(dataUrl + `?v=${Date.now()}`); // 캐시 방지
+        // fetch를 사용하여 JSON 파일 비동기 로드
+        const response = await fetch(dataUrl + `?v=${Date.now()}`); // 캐시 방지를 위해 현재 시간 추가
         if (!response.ok) {
-            throw new Error(`HTTP 오류! 상태: ${response.status} - ${response.statusText}. 파일 경로(${dataUrl}) 확인 필요.`);
+            throw new Error(`HTTP 오류! 상태: ${response.status}. 파일(${dataUrl})을 찾을 수 없습니다.`);
         }
         const petList = await response.json();
 
-        // JSON 데이터가 배열인지 확인
         if (!Array.isArray(petList)) {
-             throw new Error(`로드된 데이터(${dataUrl})가 배열 형식이 아닙니다.`);
+             throw new Error(`로드된 데이터(${dataUrl})가 올바른 JSON 배열 형식이 아닙니다.`);
         }
 
-        petData[currentMode] = {
-            timestamp: tempTimestamp, // 임시 타임스탬프 사용
-            list: petList
-        };
-        console.log(`${mode} 데이터 로드 및 파싱 성공! (${petList.length}개)`);
+        petData[currentMode].list = petList;
+        console.log(`${mode} 데이터 로드 성공! (${petList.length}개)`);
 
-        buildPetTable(); // 데이터 로드 *후* 테이블 빌드
+        buildPetTable(); // 데이터 로드 완료 후 테이블 빌드
 
         // UI 업데이트
         if (mode === 'happy') {
             document.body.classList.remove('light');
             brandTitle.textContent = "꼬비아빠 놀이터 (Happy)";
-            // ▼▼▼▼▼ 타임스탬프 표시 수정 ▼▼▼▼▼
-            dataTimestamp.textContent = tempTimestamp ? `데이터 기준 ${tempTimestamp}` : 'Happy 데이터';
-            // ▲▲▲▲▲ 타임스탬프 표시 수정 ▲▲▲▲▲
+            dataTimestamp.textContent = 'Happy 서버 데이터';
             btnModeHappy.classList.add('active');
             btnModeNova.classList.remove('active');
         } else { // nova
             document.body.classList.add('light');
             brandTitle.textContent = "꼬비아빠 놀이터 (Nova)";
-            // ▼▼▼▼▼ 타임스탬프 표시 수정 ▼▼▼▼▼
-            dataTimestamp.textContent = tempTimestamp ? `데이터 기준 ${tempTimestamp}` : 'Nova 데이터';
-            // ▲▲▲▲▲ 타임스탬프 표시 수정 ▲▲▲▲▲
+            dataTimestamp.textContent = 'Nova 서버 데이터';
             btnModeNova.classList.add('active');
             btnModeHappy.classList.remove('active');
         }
 
-        resetAll(); // UI 초기화 (목록 다시 그리기 포함)
+        resetAll();
 
     } catch (error) {
         console.error(`페트 데이터 (${mode}) 로딩 실패:`, error);
-        alert(`${mode} 페트 데이터를 불러오는 중 오류가 발생했습니다: ${error.message}. 개발자 도구 콘솔을 확인해주세요.`);
-        brandTitle.textContent = `${mode} 데이터 로드 오류`;
-        petData[currentMode] = { timestamp: "오류", list: [] };
+        alert(`${mode} 페트 데이터를 불러오는 중 오류가 발생했습니다: ${error.message}`);
+        brandTitle.textContent = `${modeName} 데이터 로드 오류`;
+        petData[currentMode] = { list: [] };
         buildPetTable();
         resetAll();
     } finally {
@@ -967,23 +619,66 @@ async function switchMode(mode) {
         btnModeNova.disabled = false;
     }
 }
+// ▲▲▲▲▲ switchMode 함수 전체 수정 ▲▲▲▲▲
+
+/* ========= 이벤트 리스너 바인딩 ========= */
+btnCalc.addEventListener('click', ()=>{
+  if(!selectedName){ alert("펫을 먼저 선택하세요."); return; }
+  const obs=[obshp,obsatk,obsdef,obsagi].map(e=>parseInt(e.value,10));
+  if(obs.some(v=>!Number.isFinite(v))){ alert("내 페트 Lv 1 초기치를 모두 입력하세요."); return; }
+  const row=GLOBAL_TABLE[selectedName]||{};
+  if(!row?.k || !row?.u){ alert("선택된 펫의 데이터(k/u)가 올바르지 않습니다."); return; }
+  showKpis(enumerate_kkoby({k: row.k, u: row.u}, obs));
+});
+
+btnReset.addEventListener('click', resetAll);
+btnClear.addEventListener('click', ()=>{
+  petSearch.value=""; currentChosung="";
+  Array.from(chosungBar.children).forEach(el=>el.classList.remove('on'));
+  if (selectedItemEl) { selectedItemEl.classList.remove('selected'); selectedItemEl = null; }
+  renderChosungTokens();
+  renderPetList();
+});
 
 btnModeHappy.addEventListener('click', () => switchMode('happy'));
 btnModeNova.addEventListener('click', () => switchMode('nova'));
 
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-delta][data-target]'); if(!btn) return;
+  const id = btn.getAttribute('data-target'); const delta = parseInt(btn.getAttribute('data-delta'),10);
+  const input=document.getElementById(id); if(!input) return;
+  const curr=parseInt(input.value||"0",10);
+  input.value = String(isNaN(curr) ? delta : curr + delta);
+});
+['wheel'].forEach(evt => {
+    document.addEventListener(evt, e => {
+        const input = e.target;
+        if (input.tagName === 'INPUT' && input.type === 'number' && document.activeElement === input) {
+            e.preventDefault();
+            const delta = (e.deltaY || e.detail || e.wheelDelta) < 0 ? 1 : -1;
+            const curr=parseInt(input.value||"0",10);
+            input.value = String(isNaN(curr) ? delta : curr + delta);
+        }
+    }, {passive:false});
+});
 
-/* ========= 부팅 (수정됨: async 및 await 사용) ========= */
+
+/* ========= 애플리케이션 초기화 ========= */
+// ▼▼▼ 3. init 함수를 async로 변경하고 await 추가 ▼▼▼
 (async function init(){
-  // 초기 UI 렌더링 (초성 버튼 등)
   CHO.forEach(c=>{
       const chip=document.createElement('div');
       chip.className='chip'; chip.textContent=c;
-      chip.addEventListener('click', ()=>{ /* ... 클릭 이벤트 ... */ });
+      chip.addEventListener('click', ()=>{
+        currentChosung += c;
+        renderPetList();
+        renderChosungTokens();
+      });
       chosungBar.appendChild(chip);
-  }); // init 함수 안으로 이동
-  // 기본 모드(happy) 데이터 로딩 시작
-  await switchMode('happy');
+  });
+  await switchMode('happy'); // 페이지 로딩 시 happy 모드 데이터를 불러올 때까지 기다립니다.
 })();
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 </script>
 </body>
 </html>
