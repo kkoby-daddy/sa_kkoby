@@ -75,7 +75,7 @@
   .ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
   svg{ display:block; width:100%; height:100%; }
   .track{ stroke: var(--ring); fill:none; stroke-linecap: round; }
-  .fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .25s ease, stroke-dashoffset .25s linear; }
+  .fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .15s ease, stroke-dashoffset .15s linear; }
   
   /* --- HUD Styles --- */
   .hud { filter: drop-shadow(0 0 var(--glow) rgba(160,200,255,.6)); }
@@ -105,25 +105,33 @@
     transition: background-color .3s ease, color .3s ease, border-color .3s ease;
   }
 
-  /* --- Light Mode --- */
-  body.light {
-    --bg: #e2e8f0; --panel: #ffffff; --muted: #64748b; --accent: #2563eb;
-    --ok: #16a34a; --warn: #f59e0b; --bad: #dc2626; --chip: #f1f5f9;
-    --ring: #cbd5e1; --text: #1e293b; --highlight: #000000;
+  /* --- Green Mode (for Nova) --- */
+  body.green-mode {
+    --bg: #1a2a2a;
+    --panel: #203838;
+    --muted: #80cbc4;
+    --accent: #64ffda;
+    --ok: #69f0ae;
+    --warn: #ffd740;
+    --bad: #ff5252;
+    --chip: #264646;
+    --ring: #375050;
+    --text: #e0f2f1;
+    --highlight: #ffffff;
   }
-  body.light header{ background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); border-color: #d1d5db; }
-  body.light .card { border-color: #d1d5db; box-shadow: 0 6px 24px rgba(0,0,0,.07); }
-  body.light hr { border-top-color: #e2e8f0; }
-  body.light input[type="number"], body.light input[type="text"], body.light .list { background: #f8fafc; border-color: #cbd5e1; }
-  body.light .item:hover{background:#f1f5f9}
-  body.light .item.selected{ background:#e2e8f0; outline-color:#9ca3af; }
-  body.light .btn{ background:#f1f5f9; border-color:#cbd5e1; color: var(--text); }
-  body.light .btn:hover{filter:brightness(.98)}
-  body.light .btn.primary, body.light .btn-group .btn.active { background:linear-gradient(180deg,#2563eb,#1d4ed8); border-color:transparent; color:white; }
-  body.light .chip{ background:#f8fafc; border-color:#cbd5e1; }
-  body.light .kbd { background: #f1f5f9; border-color: #9ca3af; }
-  body.light .badge { background: #f1f5f9; border-color: #cbd5e1; color: var(--text);}
-  body.light .table th, body.light .table td { border-bottom-color: #e2e8f0; }
+  body.green-mode header{ background: rgba(32, 56, 56, 0.7); backdrop-filter: blur(8px); border-color: #264646; }
+  body.green-mode .card { border-color: #264646; box-shadow: 0 6px 24px rgba(0,0,0,.2); }
+  body.green-mode hr { border-top-color: #375050; }
+  body.green-mode input[type="number"], body.green-mode input[type="text"], body.green-mode .list { background: #152323; border-color: #375050; }
+  body.green-mode .item:hover{background:#2a5050}
+  body.green-mode .item.selected{ background:#305f5f; outline-color:#64ffda; }
+  body.green-mode .btn{ background:#264646; border-color:#375050; color: var(--text); }
+  body.green-mode .btn:hover{filter:brightness(1.15)}
+  body.green-mode .btn.primary, body.green-mode .btn-group .btn.active { background:linear-gradient(180deg,#26a69a,#00796b); border-color:transparent; color:white; }
+  body.green-mode .chip{ background:#264646; border-color:#375050; }
+  body.green-mode .kbd { background: #152323; border-color: #80cbc4; }
+  body.green-mode .badge { background: #264646; border-color: #375050; color: var(--text);}
+  body.green-mode .table th, body.green-mode .table td { border-bottom-color: #375050; }
 
 </style>
 </head>
@@ -1654,14 +1662,16 @@ function switchMode(mode) {
     if (currentMode === mode) return;
     currentMode = mode;
 
+    // Remove all theme classes first for a clean switch
+    document.body.classList.remove('light', 'green-mode');
+
     if (mode === 'happy') {
-        document.body.classList.remove('light');
         brandTitle.textContent = "꼬비아빠 놀이터 (Happy)";
         dataTimestamp.textContent = `데이터 기준 ${petData.happy.timestamp}`;
         btnModeHappy.classList.add('active');
         btnModeNova.classList.remove('active');
     } else { // nova
-        document.body.classList.add('light');
+        document.body.classList.add('green-mode'); // Apply green-mode instead of light
         brandTitle.textContent = "꼬비아빠 놀이터 (Nova)";
         dataTimestamp.textContent = `데이터 기준 ${petData.nova.timestamp}`;
         btnModeNova.classList.add('active');
