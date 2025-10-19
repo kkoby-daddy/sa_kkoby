@@ -64,8 +64,6 @@
   .item.selected{ background:#1b2535; outline:2px solid #30518d; }
   .tags{display:flex; gap:6px; align-items:center}
   .tag{font-size:11px;border:1px solid #2b3242;border-radius:999px;padding:2px 8px}
-  .tag.ok{border-color:#275a34; background:#102214; color:#35c759}
-  .tag.warn{border-color:#7a5b0e; background:#241a05; color:#ffb300}
   .tag.fav{cursor:pointer; user-select:none}
   .tag.fav.on{border-color:#6a5600; background:#221c05; color:#ffd24a}
   .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
@@ -1452,14 +1450,7 @@ function renderPetList(){
     const div=document.createElement('div'); div.className='item';
     const left=document.createElement('div'); left.textContent = n;
     
-    // START: Badge 추가
     const right=document.createElement('div'); right.className="tags";
-    const tag1=document.createElement('span');
-    const isRegistered = !!GLOBAL_TABLE[n];
-    tag1.className = 'tag ' + (isRegistered ? 'ok' : 'warn');
-    tag1.textContent = isRegistered ? '등록됨' : '미등록';
-    right.appendChild(tag1);
-    // END: Badge 추가
      /* ★ 즐겨찾기 별 배지 */
     const star = document.createElement('span');
     const favOn = isFav(n);
@@ -1475,7 +1466,7 @@ function renderPetList(){
     right.appendChild(star);
 
     div.appendChild(left);
-    div.appendChild(right); // Badge를 div에 추가
+    div.appendChild(right);
     
     div.addEventListener('click', ()=>{
       if(selectedItemEl) selectedItemEl.classList.remove('selected');
