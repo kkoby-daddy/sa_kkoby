@@ -68,6 +68,10 @@
   .tag.warn{border-color:#7a5b0e; background:#241a05; color:#ffb300}
   .tag.rank8{border-color:#2b4a82; background:#0d1a33; color:#88b5ff}
   .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
+    /* ★ 즐겨찾기 배지 */
+  .tag.fav{cursor:pointer; user-select:none}
+  .tag.fav.on{border-color:#6a5600; background:#221c05; color:#ffd24a}
+  .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
   @media (max-width: 720px){ .kpis{grid-template-columns: 1fr} }
   .kpi{ display:flex; gap:14px; align-items:center; border:1px solid #2a3040; border-radius:14px; padding:14px; background:radial-gradient(120px 120px at 20% -10%, #11224444, transparent); }
   
@@ -169,6 +173,12 @@
           <div id="chosungTokens" class="chips" style="min-height:28px"></div>
         </div>
 
+        <!-- ★ 수정: 즐겨찾기 바를 페트 선택 카드 안으로 이동시켰습니다. -->
+        <div class="row" style="margin-top:6px; align-items:center">
+          <span class="muted" style="min-width:78px">즐겨찾기</span>
+          <div id="favChips" class="chips" style="min-height:28px"></div>
+        </div>
+        
         <div class="row" style="margin-top:8px">
           <div class="col">
             <input type="text" id="petSearch" placeholder="페트 이름으로 검색 (예: 꼬비)" />
@@ -1190,6 +1200,72 @@ const petData = {
 /* ========= 상수 ========= */
 const TOTAL = 178750;
 
+/* ========= 즐겨찾기 ========= */
+const FAV_LS_KEY = "pet_favs_v1";
+let FAVS = [];
+function loadFavs(){
+  try{
+    const arr = JSON.parse(localStorage.getItem(FAV_LS_KEY)||"[]");
+    return Array.isArray(arr) ? arr.filter(x=>typeof x==="string").slice(0,5) : [];
+  }catch{ return []; }
+}
+function saveFavs(){ localStorage.setItem(FAV_LS_KEY, JSON.stringify(FAVS)); }
+function isFav(name){ return FAVS.includes(name); }
+function showToast(msg, ms=1500){
+  const wrap = document.getElementById("toastWrap");
+  if (!wrap) return;
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.style.cssText = `
+    background: #232a36; color: #e8ecf3; padding: 10px 16px; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.3); font-size: 14px;
+    opacity: 0; transform: translateY(10px); transition: all .25s ease;
+  `;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  void t.offsetWidth; // reflow
+  t.style.opacity = '1';
+  t.style.transform = 'translateY(0)';
+  setTimeout(()=>{
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(10px)';
+    setTimeout(()=>wrap.removeChild(t), 250);
+  }, ms);
+}
+function renderFavChips(){
+  const box = document.getElementById("favChips");
+  if(!box) return;
+  box.innerHTML = "";
+  if(FAVS.length===0){
+    const span = document.createElement("span"); span.className="muted"; span.textContent="—";
+    box.appendChild(span); return;
+  }
+  FAVS.forEach(n=>{
+    const c = document.createElement("div");
+    c.className="chip"; c.textContent=n; c.title=`${n} 선택`;
+    c.addEventListener("click", ()=>{
+      // 필터 초기화 후 해당 펫 선택
+      petSearch.value=""; currentChosung="";
+      Array.from(chosungBar.children).forEach(el=>el.classList.remove('on'));
+      renderPetList();
+      const items = Array.from(petList.children);
+      const el = items.find(div => div.firstChild && div.firstChild.textContent === n);
+      if(el){ el.click(); el.scrollIntoView({block:'nearest'}); }
+    });
+    box.appendChild(c);
+  });
+}
+function addFav(name){
+  if(isFav(name)) return;
+  if(FAVS.length >= 5){ showToast("즐겨찾기는 최대 5마리까지 가능합니다."); return; }
+  FAVS.push(name); saveFavs(); renderFavChips(); renderPetList(); showToast("즐겨찾기에 추가되었습니다.");
+}
+function removeFav(name){
+  const i = FAVS.indexOf(name);
+  if(i>=0){ FAVS.splice(i,1); saveFavs(); renderFavChips(); renderPetList(); showToast("즐겨찾기에서 제거했습니다."); }
+}
+function toggleFav(name){ isFav(name) ? removeFav(name) : addFav(name); }
+  
 /* ========= 전역 ========= */
 let GLOBAL_TABLE = {};
 let ALL_NAMES = [];
@@ -1353,6 +1429,19 @@ function renderPetList(){
     tag1.textContent = isRegistered ? '등록됨' : '미등록';
     right.appendChild(tag1);
     // END: Badge 추가
+     /* ★ 즐겨찾기 별 배지 */
+    const star = document.createElement('span');
+    const favOn = isFav(n);
+    star.className = 'tag fav' + (favOn ? ' on' : '');
+    star.textContent = favOn ? '★' : '☆';
+    star.title = favOn ? '즐겨찾기 해제' : '즐겨찾기 추가';
+    star.setAttribute('role','button');
+    star.setAttribute('aria-pressed', favOn ? 'true' : 'false');
+    star.tabIndex = 0;
+    const toggle = (e)=>{ e.stopPropagation(); toggleFav(n); };
+    star.addEventListener('click', toggle);
+    star.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ toggle(e); }});
+    right.appendChild(star);
 
     div.appendChild(left);
     div.appendChild(right); // Badge를 div에 추가
@@ -1694,6 +1783,10 @@ function switchMode(mode) {
     }
 
     buildPetTable();
+      // 즐겨찾기 검증(없는 이름 제거)
+  FAVS = loadFavs().filter(n => GLOBAL_TABLE[n]);
+  saveFavs();
+  renderFavChips();
     resetAll();
 }
 
@@ -1708,3 +1801,4 @@ btnModeNova.addEventListener('click', () => switchMode('nova'));
 </script>
 </body>
 </html>
+
