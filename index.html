@@ -252,6 +252,7 @@
   <section class="card full-width" id="resultCard">
     <h3>③ 결과 분석</h3>
     <div class="kpis">
+        <!-- 성공 확률 -->
         <div class="kpi">
           <div class="ringwrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -269,6 +270,7 @@
               <use id="succFill" href="#succPath" class="fill" stroke-width="10"
                    transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
     
+              <!-- HUD 이펙트(성공 링에만) -->
               <g id="succHUD" class="hud" mask="url(#succMask)">
                 <path id="succTail" class="tail" stroke-width="10"/>
                 <path id="succCore" class="core" stroke-width="6"/>
@@ -282,6 +284,7 @@
           </div>
         </div>
     
+        <!-- 출현 확률 (게이지는 2%까지만 채움) -->
         <div class="kpi">
           <div class="ringwrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -298,6 +301,7 @@
           </div>
         </div>
     
+        <!-- 성공 기대값 (200↑ 항상 100%) -->
         <div class="kpi">
           <div class="ringwrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -331,37 +335,70 @@
 </div>
 
 <script>
-/* ========= 페트 데이터 로드 ========= */
-// 2번 index.html와 유사하게 외부에서 데이터를 로드합니다.
-// petData 변수를 기본 폴백 객체로 초기화합니다.
+/* ========= 페트 데이터 로드 (GitHub 호환) ========= */
+// GitHub 레포지토리 정보
+const GH_OWNER = "kkoby-daddy";
+const GH_REPO = "sa_kkoby"; // 제공해주신 레포지토리 이름
+const PETS_PATH = "data/pets.json";
+
+// 로딩할 경로 목록 (우선순위 순)
+// 1. GitHub Raw URL (가장 확실한 방법)
+// 2. GitHub Pages 절대 경로 (표준적인 방법)
+// 3. 상대 경로 (로컬 테스트용)
+const PET_DATA_URLS = [
+    `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main/${PETS_PATH}`,
+    `/${GH_REPO}/${PETS_PATH}`,
+    `../${PETS_PATH}`,
+    `./${PETS_PATH}`
+];
+
+// 데이터 변수 초기화
 let petData = {
     happy: { timestamp: "Loading...", list: [] },
     nova: { timestamp: "Loading...", list: [] }
 };
+const LS_CACHE_KEY = "kkoby_pet_cache"; // 로컬스토리지 캐시 키
 
 /**
- * data/pets.json 파일에서 페트 데이터를 비동기적으로 로드합니다.
- * 2번 파일의 로직을 참고하여 /data/pets.json 경로를 사용합니다.
+ * 여러 경로를 순차적으로 시도하여 pets.json 파일을 로드합니다.
+ * 성공하면 데이터를 petData 변수에 저장하고, 로컬스토리지에 캐시합니다.
+ * 모든 경로가 실패하면 캐시된 데이터를 사용합니다.
  */
 async function loadPetData() {
-    try {
-        // 2번 index.html의 경로 규칙(data/pets.json)을 따릅니다.
-        // 캐시 문제를 피하기 위해 타임스탬프 쿼리 파라미터를 추가합니다.
-        const response = await fetch('data/pets.json?v=' + Date.now());
-        if (!response.ok) {
-            throw new Error('Network response was not ok. Status: ' + response.status);
+    for (const url of PET_DATA_URLS) {
+        try {
+            const response = await fetch(`${url}?v=${Date.now()}`); // 캐시 방지
+            if (!response.ok) {
+                throw new Error(`Status: ${response.status}`);
+            }
+            const data = await response.json();
+            petData = data;
+            // 성공 시 로컬스토리지에 캐시 저장
+            localStorage.setItem(LS_CACHE_KEY, JSON.stringify(data));
+            console.log(`페트 데이터를 '${url}'에서 성공적으로 로드했습니다.`);
+            return; // 성공했으므로 함수 종료
+        } catch (error) {
+            console.warn(`'${url}' 경로에서 데이터 로드 실패:`, error.message);
         }
-        petData = await response.json();
-        console.log("페트 데이터를 data/pets.json에서 성공적으로 로드했습니다.");
-    } catch (error) {
-        console.error('페트 데이터 로드 실패:', error);
-        // 사용자에게 로드 실패를 알립니다.
-        alert('페트 데이터를 로드하는 데 실패했습니다. data/pets.json 파일이 올바른 위치에 있는지 확인해주세요.');
-        // 폴백 데이터로 스탬프를 업데이트하여 오류를 명확히 표시
-        petData.happy.timestamp = "Load Error";
-        petData.nova.timestamp = "Load Error";
+    }
+
+    // 모든 URL 시도가 실패했을 경우
+    console.warn("모든 원격 경로에서 데이터 로드 실패. 로컬스토리지 캐시를 확인합니다.");
+    const cachedData = localStorage.getItem(LS_CACHE_KEY);
+    if (cachedData) {
+        try {
+            petData = JSON.parse(cachedData);
+            console.log("로컬스토리지 캐시에서 데이터를 성공적으로 로드했습니다.");
+        } catch (e) {
+            console.error("캐시된 데이터 파싱 실패. 빈 데이터를 사용합니다.");
+            alert('페트 데이터를 불러오는 데 실패했습니다. 페이지를 새로고침하거나 인터넷 연결을 확인해주세요.');
+        }
+    } else {
+        console.error("로드할 수 있는 데이터가 없습니다 (원격 및 캐시 모두 실패).");
+        alert('페트 데이터를 불러오는 데 실패했습니다. 페이지를 새로고침하거나 인터넷 연결을 확인해주세요.');
     }
 }
+
 
 /* ========= 상수 ========= */
 const TOTAL = 178750;
@@ -445,7 +482,6 @@ function calculateSg(u, e) {
 
 function buildPetTable() {
     GLOBAL_TABLE = {};
-    // petData는 이제 JSON에서 로드됩니다.
     const sourceData = petData[currentMode].list;
     if (!sourceData || sourceData.length === 0) {
         console.warn(`'${currentMode}' 모드의 페트 리스트가 비어있습니다. JSON 파일이 로드되었는지 확인하세요.`);
@@ -528,17 +564,15 @@ function renderPetList(){
     const div=document.createElement('div'); div.className='item';
     const left=document.createElement('div'); left.textContent = n;
     
-    // START: Badge 추가
     const right=document.createElement('div'); right.className="tags";
     const tag1=document.createElement('span');
     const isRegistered = !!GLOBAL_TABLE[n];
     tag1.className = 'tag ' + (isRegistered ? 'ok' : 'warn');
     tag1.textContent = isRegistered ? '등록됨' : '미등록';
     right.appendChild(tag1);
-    // END: Badge 추가
 
     div.appendChild(left);
-    div.appendChild(right); // Badge를 div에 추가
+    div.appendChild(right);
     
     div.addEventListener('click', ()=>{
       if(selectedItemEl) selectedItemEl.classList.remove('selected');
@@ -860,19 +894,16 @@ function switchMode(mode) {
     if (currentMode === mode) return;
     currentMode = mode;
 
-    // Remove all theme classes first for a clean switch
     document.body.classList.remove('light', 'green-mode');
 
     if (mode === 'happy') {
         brandTitle.textContent = "꼬비아빠 놀이터 (Happy)";
-        // petData가 로드된 후에 timestamp에 접근합니다.
         dataTimestamp.textContent = `데이터 기준 ${petData.happy.timestamp || 'N/A'}`;
         btnModeHappy.classList.add('active');
         btnModeNova.classList.remove('active');
     } else { // nova
-        document.body.classList.add('green-mode'); // Apply green-mode instead of light
+        document.body.classList.add('green-mode');
         brandTitle.textContent = "꼬비아빠 놀이터 (Nova)";
-        // petData가 로드된 후에 timestamp에 접근합니다.
         dataTimestamp.textContent = `데이터 기준 ${petData.nova.timestamp || 'N/A'}`;
         btnModeNova.classList.add('active');
         btnModeHappy.classList.remove('active');
@@ -888,8 +919,8 @@ btnModeNova.addEventListener('click', () => switchMode('nova'));
 
 /* ========= 부팅 ========= */
 (async function init(){
-  await loadPetData(); // 데이터가 로드될 때까지 기다립니다.
-  switchMode('happy'); // 기본 모드를 Happy로 설정 (이제 petData가 로드된 상태)
+  await loadPetData();
+  switchMode('happy');
 })();
 </script>
 </body>
