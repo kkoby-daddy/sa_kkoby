@@ -1200,16 +1200,35 @@ const petData = {
 /* ========= 상수 ========= */
 const TOTAL = 178750;
 
-/* ========= 즐겨찾기 ========= */
-const FAV_LS_KEY = "pet_favs_v1";
+/* ========= 즐겨찾기 (수정됨) ========= */
 let FAVS = [];
+
+/**
+ * [수정] 현재 활성화된 모드(happy/nova)에 따라 다른 LocalStorage 키를 반환합니다.
+ * @returns {string} LocalStorage 키
+ */
+function getFavLsKey() {
+  return `pet_favs_v1_${currentMode}`;
+}
+
+/**
+ * [수정] 현재 모드에 맞는 즐겨찾기 목록을 LocalStorage에서 불러옵니다.
+ */
 function loadFavs(){
   try{
-    const arr = JSON.parse(localStorage.getItem(FAV_LS_KEY)||"[]");
+    const key = getFavLsKey(); // 모드에 맞는 키 사용
+    const arr = JSON.parse(localStorage.getItem(key)||"[]");
     return Array.isArray(arr) ? arr.filter(x=>typeof x==="string").slice(0,5) : [];
   }catch{ return []; }
 }
-function saveFavs(){ localStorage.setItem(FAV_LS_KEY, JSON.stringify(FAVS)); }
+
+/**
+ * [수정] 현재 모드의 즐겨찾기 목록을 LocalStorage에 저장합니다.
+ */
+function saveFavs(){
+  const key = getFavLsKey(); // 모드에 맞는 키 사용
+  localStorage.setItem(key, JSON.stringify(FAVS));
+}
 function isFav(name){ return FAVS.includes(name); }
 function showToast(msg, ms=1500){
   const wrap = document.getElementById("toastWrap");
@@ -1761,33 +1780,42 @@ btnClear.addEventListener('click', ()=>{
   renderPetList();
 });
 
-/* ========= 모드 전환 ========= */
+/* ========= 모드 전환 (수정됨) ========= */
 function switchMode(mode) {
     if (currentMode === mode) return;
-    currentMode = mode;
+    currentMode = mode; // 1. 새 모드로 전역 변수 업데이트
 
-    // Remove all theme classes first for a clean switch
+    // 테마 및 타이틀 업데이트
     document.body.classList.remove('light', 'green-mode');
-
     if (mode === 'happy') {
         brandTitle.textContent = "꼬비아빠 놀이터 (Happy)";
         dataTimestamp.textContent = `데이터 기준 ${petData.happy.timestamp}`;
         btnModeHappy.classList.add('active');
         btnModeNova.classList.remove('active');
     } else { // nova
-        document.body.classList.add('green-mode'); // Apply green-mode instead of light
+        document.body.classList.add('green-mode');
         brandTitle.textContent = "꼬비아빠 놀이터 (Nova)";
         dataTimestamp.textContent = `데이터 기준 ${petData.nova.timestamp}`;
         btnModeNova.classList.add('active');
         btnModeHappy.classList.remove('active');
     }
 
+    // 2. 새 모드에 맞는 페트 데이터 빌드
     buildPetTable();
-      // 즐겨찾기 검증(없는 이름 제거)
-  FAVS = loadFavs().filter(n => GLOBAL_TABLE[n]);
-  saveFavs();
-  renderFavChips();
-    resetAll();
+    
+    // 3. 새 모드에 맞는 즐겨찾기 불러오기
+    FAVS = loadFavs();
+    
+    // 4. 즐겨찾기 목록에 현재 페트 목록에 없는 페트가 있다면 제거 (데이터 업데이트 대비)
+    const validFavs = FAVS.filter(n => GLOBAL_TABLE[n]);
+    if (validFavs.length < FAVS.length) {
+      FAVS = validFavs;
+      saveFavs();
+    }
+    
+    // 5. UI 업데이트
+    renderFavChips(); // 즐겨찾기 칩 목록 업데이트
+    resetAll();       // 페트 목록 및 입력창 초기화
 }
 
 btnModeHappy.addEventListener('click', () => switchMode('happy'));
@@ -1801,4 +1829,3 @@ btnModeNova.addEventListener('click', () => switchMode('nova'));
 </script>
 </body>
 </html>
-
