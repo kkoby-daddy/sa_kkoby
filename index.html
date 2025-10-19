@@ -66,9 +66,6 @@
   .tag{font-size:11px;border:1px solid #2b3242;border-radius:999px;padding:2px 8px}
   .tag.ok{border-color:#275a34; background:#102214; color:#35c759}
   .tag.warn{border-color:#7a5b0e; background:#241a05; color:#ffb300}
-  .tag.rank8{border-color:#2b4a82; background:#0d1a33; color:#88b5ff}
-  .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
-    /* ★ 즐겨찾기 배지 */
   .tag.fav{cursor:pointer; user-select:none}
   .tag.fav.on{border-color:#6a5600; background:#221c05; color:#ffd24a}
   .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
@@ -136,6 +133,19 @@
   body.green-mode .kbd { background: #152323; border-color: #80cbc4; }
   body.green-mode .badge { background: #264646; border-color: #375050; color: var(--text);}
   body.green-mode .table th, body.green-mode .table td { border-bottom-color: #375050; }
+  
+  /* --- Toast (알림) 스타일 추가 --- */
+  #toastWrap {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
 
 </style>
 </head>
@@ -173,7 +183,6 @@
           <div id="chosungTokens" class="chips" style="min-height:28px"></div>
         </div>
 
-        <!-- ★ 수정: 즐겨찾기 바를 페트 선택 카드 안으로 이동시켰습니다. -->
         <div class="row" style="margin-top:6px; align-items:center">
           <span class="muted" style="min-width:78px">즐겨찾기</span>
           <div id="favChips" class="chips" style="min-height:28px"></div>
@@ -343,6 +352,9 @@
 <div class="footer">
   <p> Data by. 꼬비아빠 </p>
 </div>
+
+<!-- 알림 메시지를 표시할 컨테이너 -->
+<div id="toastWrap"></div>
 
 <script>
 /* ========= 페트 데이터 ========= */
@@ -1740,14 +1752,14 @@ function enumerate_kkoby(pku, obs){
   return {matches, rank8, dist};
 }
 
-/* ========= 계산 및 리셋 ========= */
+/* ========= 계산 및 리셋 (수정됨) ========= */
 btnCalc.addEventListener('click', ()=>{
-  if(!selectedName){ alert("펫을 먼저 선택하세요."); return; }
+  if(!selectedName){ showToast("펫을 먼저 선택하세요."); return; }
   const obs=[obshp,obsatk,obsdef,obsagi].map(e=>parseInt(e.value,10));
-  if(obs.some(v=>!Number.isFinite(v))){ alert("관측 표기치(정수)를 모두 입력하세요."); return; }
+  if(obs.some(v=>!Number.isFinite(v))){ showToast("LV 1 초기치를 모두 입력하세요."); return; }
 
   const row=GLOBAL_TABLE[selectedName]||{};
-  if(!row?.k || !row?.u){ alert("이 펫은 데이터(k/u)가 등록되어 있지 않습니다."); return; }
+  if(!row?.k || !row?.u){ showToast("이 펫은 성장률 데이터가 등록되어 있지 않습니다."); return; }
   
   const res = enumerate_kkoby({k: row.k, u: row.u}, obs);
   showKpis(res);
