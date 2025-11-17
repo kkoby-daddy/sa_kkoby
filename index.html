@@ -66,12 +66,8 @@
   .tag{font-size:11px;border:1px solid #2b3242;border-radius:999px;padding:2px 8px}
   .tag.fav{cursor:pointer; user-select:none}
   .tag.fav.on{border-color:#6a5600; background:#221c05; color:#ffd24a}
-  
-  /* [수정] 4열 그리드로 변경 (맹독 데미지 추가) */
-  .kpis{display:grid; grid-template-columns: repeat(4, 1fr); gap:12px}
-  @media (max-width: 980px){ .kpis{grid-template-columns: repeat(2, 1fr)} }
+  .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
   @media (max-width: 720px){ .kpis{grid-template-columns: 1fr} }
-
   .kpi{ display:flex; gap:14px; align-items:center; border:1px solid #2a3040; border-radius:14px; padding:14px; background:radial-gradient(120px 120px at 20% -10%, #11224444, transparent); }
   
   /* --- SVG Ring Styles --- */
@@ -337,19 +333,6 @@
             <small>성공 기대값(시도)</small>
           </div>
         </div>
-        
-        <!-- [추가] 8등급 맹독 데미지 KPI -->
-        <div class="kpi">
-          <div class="ringwrap" style="display:flex; align-items:center; justify-content:center; background:var(--ring); border-radius:50%;">
-             <!-- 맹독 아이콘 -->
-             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-500" style="color: var(--muted);"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-          </div>
-          <div>
-            <strong id="kpiPoisonDmg" class="muted">—</strong>
-            <small>8등급 맹독 데미지</small>
-          </div>
-        </div>
-
       </div>
     <div style="margin-top:14px">
       <div class="row">
@@ -1550,7 +1533,7 @@ function selectPetName(n){
   }else{
     obshp.value=obsatk.value=obsdef.value=obsagi.value="";
   }
-  showKpis(null, null); // [수정] 맹독 데미지 값도 null로 리셋
+  showKpis(null);
 }
 
 /* ========= KPI 렌더링 로직 ========= */
@@ -1673,21 +1656,11 @@ function setTries(t){
   document.getElementById('kpiTries').textContent = (Number.isFinite(t)? Math.round(currTries) : '—');
 }
 
-// [수정] showKpis 함수
-function showKpis(res, poisonDmg){ // [수정] poisonDmg 파라미터 추가
-  const kpiPoisonDmg = document.getElementById('kpiPoisonDmg');
-  const kpiPoisonDmgIcon = kpiPoisonDmg.closest('.kpi').querySelector('svg');
-
+function showKpis(res){
   if(!res){
     setSuccess(0);
     setAppear(0);
     setTries(1);
-    
-    // [추가] 맹독 데미지 리셋
-    kpiPoisonDmg.textContent = "—";
-    kpiPoisonDmg.className = 'muted';
-    if (kpiPoisonDmgIcon) kpiPoisonDmgIcon.style.color = 'var(--muted)';
-
     totMatches.textContent = "—";
     rank8Matches.textContent = "—";
     distBox.innerHTML = "";
@@ -1706,26 +1679,6 @@ function showKpis(res, poisonDmg){ // [수정] poisonDmg 파라미터 추가
 
   totMatches.textContent   = matches.toLocaleString();
   rank8Matches.textContent = rank8.toLocaleString();
-
-  // [추가] 맹독 데미지 UI 업데이트
-  if (poisonDmg !== null && Number.isFinite(poisonDmg)) {
-      kpiPoisonDmg.textContent = poisonDmg;
-      
-      if (poisonDmg >= 3) {
-          kpiPoisonDmg.className = 'ok';
-          if (kpiPoisonDmgIcon) kpiPoisonDmgIcon.style.color = 'var(--ok)';
-      } else if (poisonDmg === 2) {
-          kpiPoisonDmg.className = 'warn';
-          if (kpiPoisonDmgIcon) kpiPoisonDmgIcon.style.color = 'var(--warn)';
-      } else {
-          kpiPoisonDmg.className = 'bad';
-          if (kpiPoisonDmgIcon) kpiPoisonDmgIcon.style.color = 'var(--bad)';
-      }
-  } else {
-      kpiPoisonDmg.textContent = "N/A";
-      kpiPoisonDmg.className = 'muted';
-      if (kpiPoisonDmgIcon) kpiPoisonDmgIcon.style.color = 'var(--muted)';
-  }
 
   const entries = Object.entries(res.dist)
     .map(([r,c]) => ({r:parseInt(r,10), c}))
@@ -1820,39 +1773,6 @@ function enumerate_kkoby(pku, obs){
   return {matches, rank8, dist};
 }
 
-/**
- * [NEW] Rank 8 맹독 데미지 계산 함수 (stoneage_poison_damage.md 기반)
- * @param {object} pku - 펫 데이터 (k: initnum, u: {hp, atk, def, agi})
- * @returns {number} - 8등급 기준 맹독 데미지
- */
-function calculateRank8PoisonDamage(pku) {
-    if (!pku || !pku.k || !pku.u) {
-        return null; // 데이터 없으면 null 반환
-    }
-    
-    // Decimal.js를 사용하여 정확한 계산 수행
-    const k = new Decimal(pku.k);
-    const s = new Decimal(pku.u.hp).plus(pku.u.atk).plus(pku.u.def).plus(pku.u.agi);
-    
-    // 총 베이스 합 (S + 랭크보너스 8 + 보너스스탯 10)
-    // index.html의 enumerate_kkoby 함수 로직(hr+ar+dr+gr=8, hb+ab+db+gb=10) 참조
-    const totalBaseSum = k.times(s.plus(18));
-    
-    // 맹독 데미지 공식 적용 (stoneage_poison_damage.md 참조)
-    // down = ( totalBaseSum / 100 - 20 ) / 4
-    let down = totalBaseSum.dividedBy(100).minus(20).dividedBy(4);
-    
-    // md파일의 예시(2.02 -> 2)를 보면 floor(버림)가 맞음.
-    down = down.floor(); // 소수점 버림 (정수화)
-
-    // if ( down < 1 ) down = 1;
-    if (down.lessThan(1)) {
-        return 1;
-    }
-    
-    return down.toNumber();
-}
-
 /* ========= 계산 및 리셋 (수정됨) ========= */
 btnCalc.addEventListener('click', ()=>{
   if(!selectedName){ showToast("펫을 먼저 선택하세요."); return; }
@@ -1863,12 +1783,7 @@ btnCalc.addEventListener('click', ()=>{
   if(!row?.k || !row?.u){ showToast("이 펫은 성장률 데이터가 등록되어 있지 않습니다."); return; }
   
   const res = enumerate_kkoby({k: row.k, u: row.u}, obs);
-  
-  // [추가] 맹독 데미지 계산
-  const poisonDmg = calculateRank8PoisonDamage({k: row.k, u: row.u});
-  
-  // [수정] showKpis에 맹독 데미지 전달
-  showKpis(res, poisonDmg);
+  showKpis(res);
 });
 
 function resetAll(){
@@ -1882,7 +1797,7 @@ function resetAll(){
     renderChosungTokens();
     renderPetList();
     [s0hp,s0atk,s0def,s0agi,sghp,sgatk,sgdef,sgagi,obshp,obsatk,obsdef,obsagi].forEach(i=>i.value="");
-    showKpis(null, null); // [수정] 맹독 데미지 값도 null로 리셋
+    showKpis(null);
 }
 
 btnReset.addEventListener('click', resetAll);
