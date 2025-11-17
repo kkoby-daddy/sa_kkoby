@@ -1819,7 +1819,7 @@ function switchMode(mode) {
     currentMode = mode; // 1. 새 모드로 전역 변수 업데이트
 
     // 테마 및 타이틀 업데이트
-    document.body.classList.remove('light', 'green-mode');
+    document.body.classList.remove('green-mode');
     if (mode === 'happy') {
         brandTitle.textContent = "꼬비아빠 놀이터 (Happy)";
         dataTimestamp.textContent = `데이터 기준 ${petData.happy.timestamp}`;
@@ -1862,3 +1862,4 @@ btnModeNova.addEventListener('click', () => switchMode('nova'));
 </script>
 </body>
 </html>
+
