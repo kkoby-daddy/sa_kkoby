@@ -5,357 +5,606 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>꼬비아빠 놀이터</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
+<!-- 폰트: Noto Sans KR + Tech 느낌의 Orbit -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Orbit&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0f1115; --panel:#161a22; --muted:#8a9099; --accent:#6aa0ff;
-    --ok:#35c759; --warn:#ffb300; --bad:#ff5171; --chip:#232a36;
-    --ring:#1f2530; --text:#e8ecf3; --highlight:#fff;
-    --ring-size: 60px; --hud-speed: 120;
-    --glow: 8px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    background:var(--bg); color:var(--text);
-    transition: background-color .3s ease, color .3s ease;
-  }
-  header{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:16px 20px; border-bottom:1px solid #232a36; background:rgba(0,0,0,.2);
-    position:sticky; top:0; z-index:10;
-  }
-  .brand{font-weight:700; letter-spacing:.3px}
-  .ver{color:var(--muted); font-size:12px; display:flex; align-items:center; gap:10px}
-  .grid{ max-width:1300px; margin:20px auto; padding:0 16px; display:grid; gap:16px; grid-template-columns: 1fr 1fr; }
-  @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
-  .card{background:var(--panel); border:1px solid #232a36; border-radius:14px; padding:16px; box-shadow:0 6px 24px rgba(0,0,0,.25);}
-  .full-width { grid-column: 1 / -1; }
-  .card h3{margin:4px 0 12px 0; font-size:16px}
-  .row{display:flex; gap:8px; flex-wrap:wrap}
-  .col{flex:1 1 0}
-  label{display:block; font-size:12px; color:var(--muted); margin:6px 0 4px 2px}
-  input[type="number"], input[type="text"]{
-    width:100%; padding:10px 12px; border-radius:10px; border:1px solid #2a3040;
-    background:#0e1218; color:var(--text); outline:none;
-  }
-  input[readonly]{opacity:.7; cursor:not-allowed}
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-  .btn{ padding:10px 14px; border-radius:10px; border:1px solid #334055; cursor:pointer; background:#142033; color:#cfe1ff; font-weight:600; }
-  .btn:hover{filter:brightness(1.1)}
-  .btn.primary{ background:linear-gradient(180deg,#2b71ff,#1d56cc); border-color:transparent; color:white;}
-  .btn.ghost{ background:transparent;}
-  .btn-sm{padding:6px 10px; font-size:12px; border-radius:8px}
-  .btn-group {display: flex;}
-  .btn-group .btn{ border-radius: 0; margin-left: -1px; }
-  .btn-group .btn:first-child{ border-top-left-radius: 10px; border-bottom-left-radius: 10px; margin-left: 0;}
-  .btn-group .btn:last-child{ border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
-  .btn-group .btn.active{ background:linear-gradient(180deg,#2b71ff,#1d56cc); border-color:transparent; color:white; filter: none; }
-  .muted{color:var(--muted)}
-  .chips{display:flex; gap:8px; flex-wrap:wrap}
-  .chip{ background:var(--chip); color:#cfd6e3; border:1px solid #2b3242; border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; }
-  .chip.on{outline:2px solid var(--accent)}
-  .kbd{display:inline-block; border:1px solid #404a5e; border-bottom-width:3px; padding:2px 6px; border-radius:6px; background:#0e131a; font-weight:700}
-  .chooser{display:grid; grid-template-columns: 1fr; gap:8px}
-  .list{ max-height:260px; overflow:auto; border:1px solid #2a3040; border-radius:10px; padding:6px; background:#0d1117; }
-  .item{padding:8px 10px; border-radius:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background .12s ease, outline-color .12s ease; }
-  .item:hover{background:#19202b}
-  .item.selected{ background:#1b2535; outline:2px solid #30518d; }
-  .tags{display:flex; gap:6px; align-items:center}
-  .tag{font-size:11px;border:1px solid #2b3242;border-radius:999px;padding:2px 8px}
-  .tag.fav{cursor:pointer; user-select:none}
-  .tag.fav.on{border-color:#6a5600; background:#221c05; color:#ffd24a}
-  .kpis{display:grid; grid-template-columns: repeat(3, 1fr); gap:12px}
-  @media (max-width: 720px){ .kpis{grid-template-columns: 1fr} }
-  .kpi{ display:flex; gap:14px; align-items:center; border:1px solid #2a3040; border-radius:14px; padding:14px; background:radial-gradient(120px 120px at 20% -10%, #11224444, transparent); }
-  
-  /* --- SVG Ring Styles --- */
-  .ringwrap{ position:relative; width:var(--ring-size); height:var(--ring-size); flex:0 0 var(--ring-size); }
-  svg{ display:block; width:100%; height:100%; }
-  .track{ stroke: var(--ring); fill:none; stroke-linecap: round; }
-  .fill { stroke: var(--accent); fill:none; stroke-linecap: round; transition: stroke .15s ease, stroke-dashoffset .15s linear; }
-  
-  /* --- HUD Styles --- */
-  .hud { filter: drop-shadow(0 0 var(--glow) rgba(160,200,255,.6)); }
-  .tail{ stroke: #9fc3ff; stroke-linecap: round; opacity:.7; fill:none; }
-  .core{ stroke: #fff;     stroke-linecap: round; fill:none; }
-  .flare{ fill: #fff; opacity:.95; }
-  
-  #kpiSuccess, #kpiAppear, #kpiTries {
-    display:inline-block;
-    min-width: 9ch;
-    font-variant-numeric: tabular-nums;
-  }
-  #kpiTries { min-width: 6ch; }
-
-  .kpi strong{font-size:20px; color:var(--highlight)}
-  .kpi small{display:block; color:var(--muted)}
-  .table{width:100%; border-collapse:collapse; font-size:13px}
-  .table th,.table td{border-bottom:1px solid #262d3a; padding:8px 6px; text-align:right}
-  .table th:first-child,.table td:first-child{text-align:left}
-  .badge{display:inline-block; min-width:34px; text-align:center; padding:2px 6px; border-radius:6px; background:#223; border:1px solid #356}
-  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
-  .footer{max-width:1100px; margin:8px auto 30px; padding:0 16px; color:var(--muted); font-size:12px; text-align: center;}
-  .stepper{display:flex; gap:6px; margin-top:6px}
-  
-  /* --- Transitions --- */
-  body, .card, header, input, .btn, .chip, .list, .item, .badge, .table th, .table td, hr {
-    transition: background-color .3s ease, color .3s ease, border-color .3s ease;
+  :root {
+    /* 기본(Happy) 테마 변수 - 다크 테마 고정 */
+    --bg-gradient: linear-gradient(135deg, #0f1115 0%, #1a1d26 100%);
+    --sidebar-bg: rgba(22, 26, 34, 0.85);
+    --main-bg: rgba(15, 17, 21, 0.6);
+    --card-bg: rgba(35, 42, 54, 0.6);
+    --border: 1px solid rgba(255, 255, 255, 0.1);
+    --accent: #6aa0ff;
+    --accent-glow: rgba(106, 160, 255, 0.3);
+    --text-main: #e8ecf3;
+    --text-sub: #8a9099;
+    --ok: #35c759; --warn: #ffb300; --bad: #ff5171;
+    --font-main: 'Noto Sans KR', sans-serif;
+    --font-tech: 'Orbit', sans-serif;
+    --radius: 16px;
   }
 
-  /* --- Green Mode (for Nova) --- */
-  body.green-mode {
-    --bg: #1a2a2a;
-    --panel: #203838;
-    --muted: #80cbc4;
-    --accent: #64ffda;
-    --ok: #69f0ae;
-    --warn: #ffd740;
-    --bad: #ff5252;
-    --chip: #264646;
-    --ring: #375050;
-    --text: #e0f2f1;
-    --highlight: #ffffff;
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: var(--font-main);
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    height: 100vh;
+    overflow: hidden; /* 전체 스크롤 방지, 내부 스크롤 사용 */
+    transition: all 0.3s ease;
   }
-  body.green-mode header{ background: rgba(32, 56, 56, 0.7); backdrop-filter: blur(8px); border-color: #264646; }
-  body.green-mode .card { border-color: #264646; box-shadow: 0 6px 24px rgba(0,0,0,.2); }
-  body.green-mode hr { border-top-color: #375050; }
-  body.green-mode input[type="number"], body.green-mode input[type="text"], body.green-mode .list { background: #152323; border-color: #375050; }
-  body.green-mode .item:hover{background:#2a5050}
-  body.green-mode .item.selected{ background:#305f5f; outline-color:#64ffda; }
-  body.green-mode .btn{ background:#264646; border-color:#375050; color: var(--text); }
-  body.green-mode .btn:hover{filter:brightness(1.15)}
-  body.green-mode .btn.primary, body.green-mode .btn-group .btn.active { background:linear-gradient(180deg,#26a69a,#00796b); border-color:transparent; color:white; }
-  body.green-mode .chip{ background:#264646; border-color:#375050; }
-  body.green-mode .kbd { background: #152323; border-color: #80cbc4; }
-  body.green-mode .badge { background: #264646; border-color: #375050; color: var(--text);}
-  body.green-mode .table th, body.green-mode .table td { border-bottom-color: #375050; }
-  
-  /* --- Toast (알림) 스타일 추가 --- */
-  #toastWrap {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
+
+  /* --- 레이아웃 --- */
+  .app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* 1. 사이드바 (페트 목록) */
+  .sidebar {
+    width: 400px;
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(12px);
+    border-right: var(--border);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    z-index: 10;
+    transition: transform 0.3s ease;
+  }
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: var(--border);
+  }
+  .brand {
+    font-family: var(--font-tech);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+  .ver { font-size: 11px; color: var(--text-sub); display: flex; justify-content: space-between; align-items: center;}
+  
+  .search-area { padding: 15px 20px 5px; }
+  .search-box {
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .search-box input {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text-main);
+    outline: none;
+    font-size: 14px;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+
+  .filter-chips {
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 0 20px 15px;
+  }
+  /* 초성 토큰 영역 스타일 추가 */
+  #chosungTokens {
+    padding: 0 20px 10px; min-height: 38px;
     align-items: center;
   }
+  
+  .chip {
+    font-size: 11px; padding: 4px 8px; background: rgba(255,255,255,0.05);
+    border-radius: 6px; cursor: pointer; color: var(--text-sub);
+    transition: 0.2s; border: 1px solid transparent;
+    user-select: none;
+  }
+  .chip:hover { background: rgba(255,255,255,0.1); }
+  .chip.active {
+    background: var(--accent-glow);
+    color: var(--accent);
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .chip.label {
+    background: transparent; color: var(--text-sub); 
+    border-color: transparent; cursor: default;
+    font-weight: bold; padding-left: 0;
+  }
 
+  .pet-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 10px 20px 20px;
+  }
+  .pet-list::-webkit-scrollbar { width: 6px; }
+  .pet-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+  .pet-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  .pet-item:hover { background: rgba(255,255,255,0.07); transform: translateX(2px); }
+  .pet-item.selected {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow);
+  }
+  .pet-name { font-weight: 500; font-size: 14px; }
+  .fav-icon { color: var(--text-sub); font-size: 16px; transition: 0.2s; }
+  .fav-icon.active { color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
+
+  /* 2. 메인 컨텐츠 (계산기) */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--main-bg);
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  /* 상단 네비게이션 (모바일용 햄버거만 남김) */
+  .top-nav {
+    display: flex; justify-content: flex-end; align-items: center;
+    padding: 15px 30px;
+    z-index: 20;
+    min-height: 60px; /* 높이 확보 */
+  }
+  
+  .menu-toggle { display: none; font-size: 24px; color: var(--text-main); cursor: pointer; margin-right: auto; }
+
+  /* 대시보드 그리드 */
+  .dashboard {
+    padding: 10px 30px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 24px;
+    align-items: stretch; /* 패널 높이 맞춤 */
+  }
+
+  /* 패널 공통 스타일 */
+  .panel {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: var(--border);
+    padding: 24px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 580px; /* 요청사항 반영: 세로길이 키워서 밸런스 조정 (분석시 아래로 길어짐 방지) */
+  }
+  .panel h2 {
+    margin: 0 0 20px;
+    font-size: 18px;
+    font-family: var(--font-tech);
+    color: var(--accent);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel h2::before {
+    content:''; display:block; width: 4px; height: 18px;
+    background: var(--accent); border-radius: 2px;
+  }
+
+  /* 안내사항 패널 스타일 - 높이 자동, 글씨 크기 키움 */
+  .notice-panel {
+    grid-column: 1 / -1; /* 전체 너비 */
+    padding: 20px 30px; /* 패딩 증가 */
+    display: flex; flex-direction: column;
+    height: auto; 
+    min-height: auto; /* 안내사항은 고정 높이 X */
+  }
+  .notice-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 15px; /* 마진 증가 */
+  }
+  .notice-title { 
+    font-size: 18px; /* 제목 글씨 크기 증가 */
+    font-weight: 700; 
+    color: var(--text-main); /* 색상 변경 */
+    display: flex; align-items: center; gap: 10px; 
+  }
+  .notice-title::before { 
+    content: 'ⓘ'; 
+    color: var(--accent); 
+    font-size: 20px; /* 아이콘 크기 증가 */
+  }
+  .notice-content {
+    padding-top: 15px; 
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 16px; /* 본문 글씨 크기 증가 */
+    line-height: 1.8; /* 줄 간격 증가 */
+    color: var(--text-sub);
+    display: block; 
+  }
+
+
+  /* 입력 영역 */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-col label {
+    display: block; font-size: 11px; color: var(--text-sub); margin-bottom: 6px; text-align: center;
+  }
+  .stat-box {
+    background: rgba(0,0,0,0.2);
+    border: var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+  }
+  .stat-box input {
+    width: 100%; background: transparent; border: none;
+    color: var(--text-main); font-size: 16px; font-weight: 700;
+    text-align: center; outline: none; font-family: var(--font-tech);
+  }
+  .stat-box input:focus { color: var(--accent); }
+  /* number input 화살표 제거 */
+  .stat-box input::-webkit-outer-spin-button,
+  .stat-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .stat-box.readonly { opacity: 0.6; background: rgba(0,0,0,0.4); }
+  
+  .input-group-title {
+    font-size: 13px; color: var(--text-sub); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .input-group-title::after { content:''; height:1px; flex:1; background: rgba(255,255,255,0.1); }
+
+  /* 컨트롤 버튼 */
+  .stepper-btn {
+    width: 100%; display: flex; gap: 4px; margin-top: 4px;
+  }
+  .s-btn {
+    flex: 1; background: rgba(255,255,255,0.05); border: none; color: var(--text-sub);
+    font-size: 10px; cursor: pointer; border-radius: 4px; padding: 4px 0;
+  }
+  .s-btn:hover { background: rgba(255,255,255,0.15); color: var(--text-main); }
+
+  /* 버튼 스타일 수정: 크기 키움 및 그림자 제거 */
+  .action-btns { 
+    display: flex; gap: 16px; /* 간격 증가 */
+    margin-top: auto; /* 버튼을 항상 아래로 밀어넣음 */
+    padding-top: 30px; /* 패딩 증가 */
+  }
+  .btn-main {
+    flex: 1; 
+    padding: 18px 24px; /* 패딩 크게 증가 */
+    border-radius: 16px; /* 둥글기 증가 */
+    border: none;
+    font-weight: 700; 
+    cursor: pointer; 
+    font-size: 18px; /* 글씨 크기 증가 */
+    transition: 0.2s;
+  }
+  .btn-calc {
+    background: var(--accent); color: #000;
+    /* box-shadow 제거됨 */
+  }
+  .btn-calc:hover { transform: translateY(-3px); filter: brightness(1.1); /* 호버 시 그림자 제거 */ }
+  .btn-reset { background: rgba(255,255,255,0.1); color: var(--text-main); }
+  .btn-reset:hover { background: rgba(255,255,255,0.2); transform: translateY(-3px); }
+
+  /* 결과 패널 (HUD 스타일) */
+  .result-panel {
+    gap: 20px;
+  }
+  .hud-rings {
+    display: flex; justify-content: space-around; align-items: flex-end;
+    padding: 10px 0 20px;
+  }
+  .ring-container {
+    position: relative;
+    width: 90px; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .ring-svg { width: 70px; height: 70px; transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
+  .ring-val { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
+  .ring-label { font-size: 11px; color: var(--text-sub); }
+  .ring-text {
+    position: absolute; top: 26px; left: 50%; transform: translateX(-50%);
+    font-family: var(--font-tech); font-size: 15px; font-weight: 700; color: var(--text-main);
+  }
+
+  .stat-summary {
+    background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px;
+    display: flex; justify-content: space-between;
+  }
+  .sum-item { text-align: center; flex: 1; }
+  .sum-label { font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 4px;}
+  .sum-val { font-size: 16px; font-weight: 700; color: var(--accent); font-family: var(--font-tech); }
+
+  /* 8등급 강조 카드 */
+  .rank8-card {
+    background: rgba(53, 199, 89, 0.1);
+    border: 1px solid var(--ok);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .rank8-label { color: var(--ok); font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+  .rank8-label::before { content:'★'; }
+  .rank8-value { font-family: var(--font-tech); color: #fff; font-size: 18px; font-weight: 700; }
+  .rank8-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-left: 8px; }
+
+  /* 나머지 등급 토글 버튼 */
+  .toggle-details-btn {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: none;
+    color: var(--text-sub);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex; justify-content: center; align-items: center; gap: 5px;
+    transition: 0.2s;
+  }
+  .toggle-details-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
+  
+  /* 숨겨진 테이블 컨테이너 */
+  .hidden-details {
+    display: none;
+    margin-top: 10px;
+    animation: slideDown 0.3s ease;
+  }
+  .hidden-details.open { display: block; }
+  
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .detail-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  .detail-table th { text-align: left; color: var(--text-sub); padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .detail-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .rank-badge {
+    padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700;
+    background: rgba(255,255,255,0.1);
+  }
+  .rank-badge.s { color: var(--ok); background: rgba(53, 199, 89, 0.15); border: 1px solid var(--ok); }
+  .rank-badge.a { color: var(--warn); background: rgba(255, 179, 0, 0.15); border: 1px solid var(--warn); }
+
+  /* 반응형 (모바일) */
+  @media (max-width: 900px) {
+    .app-container { flex-direction: column; height: auto; min-height: 100vh; overflow-y: auto; }
+    .sidebar {
+      width: 100%; height: auto; max-height: 300px;
+      position: relative; border-right: none; border-bottom: var(--border);
+    }
+    .main-content { overflow: visible; }
+    .dashboard { grid-template-columns: 1fr; padding: 20px; }
+    .menu-toggle { display: block; }
+    /* 모바일에서는 높이 자동 */
+    .panel { height: auto; min-height: auto; }
+    
+    /* 모바일에서 사이드바 토글 (옵션) */
+    .sidebar.collapsed { display: none; }
+  }
+
+  #toastWrap {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    z-index: 1000; display: flex; flex-direction: column; gap: 8px;
+  }
+  .toast {
+    background: var(--card-bg); color: var(--text-main);
+    padding: 10px 20px; border-radius: 30px; font-size: 14px;
+    border: 1px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    opacity: 0; transition: 0.3s;
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="brand" id="brand-title">꼬비아빠 놀이터</div>
-  <div class="ver">
-    <span id="data-timestamp"></span>
-    <div class="btn-group">
-        <button id="mode-happy" class="btn">Happy</button>
-        <button id="mode-nova" class="btn">Nova</button>
+
+<div class="app-container">
+  <!-- 1. 좌측 사이드바 (인벤토리) -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">꼬비아빠 놀이터</div>
+      <div class="ver">
+        <span id="data-timestamp">Data: 25.11.10</span>
+        <!-- 요청사항 반영: 문구 변경 -->
+        <span>Date by.꼬비아빠</span>
+      </div>
     </div>
-  </div>
-</header>
+    
+    <div class="search-area">
+      <div class="search-box">
+        <input type="text" id="petSearch" placeholder="페트 이름 검색..." />
+      </div>
+    </div>
+    
+    <!-- 선택된 초성 토큰 영역 -->
+    <div class="filter-chips" id="chosungTokens" style="padding-bottom:5px; min-height:30px;">
+        <!-- 선택된 초성이 여기에 표시됨 -->
+    </div>
 
-<div class="grid">
-    <section class="card full-width">
-        <h3>안내사항</h3>
-        <p class="muted" style="margin: 0; font-size: 14px;">
-          - 입력된 페트 능력치에는 오타가 있을 수 있으니 페트 조회 시 게임 내 페트의 초기치 및 성장률이 같은지 확인하세요. <br>
-          - 업데이트로 추가되는 페트와 기존 페트의 성장률 변경시 데이터가 다르게 나올 수 있습니다. <br>
-          - 특이사항 : 꼬비 / 남아 / 푸들(갈색) / 20.03.24 출생 / 중성화 O
-        </p>
-    </section>
+    <!-- 초성 필터 (키패드) -->
+    <div class="filter-chips" id="chosung">
+      <!-- JS로 생성됨 -->
+    </div>
 
-  <section class="card">
-    <h3>① 페트 선택</h3>
-    <div class="row">
-      <div class="col chooser">
-        <label>페트 초성</label>
-        <div id="chosung" class="chips"></div>
+    <!-- 즐겨찾기 필터 -->
+    <div style="padding: 0 20px 10px; display:flex; gap:10px; align-items:center;">
+       <span style="font-size:11px; color:var(--text-sub);">즐겨찾기:</span>
+       <div id="favChips" style="display:flex; gap:5px; flex-wrap:wrap;"></div>
+    </div>
 
-        <div class="row" style="margin-top:6px; align-items:center">
-          <span class="muted" style="min-width:78px">선택한 초성</span>
-          <div id="chosungTokens" class="chips" style="min-height:28px"></div>
+    <div class="pet-list" id="petList">
+      <!-- 펫 리스트 아이템들이 여기에 들어감 -->
+    </div>
+  </aside>
+
+  <!-- 2. 메인 컨텐츠 -->
+  <main class="main-content">
+    <nav class="top-nav">
+      <div class="menu-toggle">☰</div>
+    </nav>
+
+    <div class="dashboard">
+      
+      <!-- 안내사항 패널 -->
+      <section class="panel notice-panel">
+        <div class="notice-header">
+          <div class="notice-title">SYSTEM NOTICE (안내사항)</div>
         </div>
-
-        <div class="row" style="margin-top:6px; align-items:center">
-          <span class="muted" style="min-width:78px">즐겨찾기</span>
-          <div id="favChips" class="chips" style="min-height:28px"></div>
+        <div class="notice-content">
+          - 입력된 페트 능력치에는 오타가 있을 수 있으니 페트 조회 시 게임 내 페트의 초기치 및 성장률이 같은지 확인하세요.<br>
+          - 오타가 있다면 말씀 부탁드리며, 해당 계산기는 재미로만 봐주시길 바랍니다.<br>
+          <span style="color:var(--accent)">- 특이사항 : 꼬비 / 남아 / 푸들(갈색) / 20.03.24 출생 / 중성화 O<br></span>
         </div>
+      </section>
+
+      <!-- 입력 패널 -->
+      <section class="panel">
+        <h2><span id="selectedPetTitle">페트를 선택해주세요</span></h2>
         
-        <div class="row" style="margin-top:8px">
-          <div class="col">
-            <input type="text" id="petSearch" placeholder="페트 이름으로 검색 (예: 꼬비)" />
+        <div class="input-group-title">S급 기준 (초기치 / 성장률)</div>
+        <div class="stat-grid">
+          <div class="stat-col">
+            <label>내구력</label>
+            <div class="stat-box readonly"><input type="number" id="s0_hp" readonly placeholder="-"></div>
+            <div class="stat-box readonly" style="margin-top:6px"><input type="number" id="sg_hp" readonly placeholder="-"></div>
           </div>
-          <button class="btn" id="btnClear">지우기</button>
-        </div>
-        <div class="list" id="petList"></div>
-      </div>
-    </div>
-    <p class="muted" style="margin-top:8px">팁 : 초성만 두세번 눌러도 검색이 가능합니다. (예: 꼬비 = <span class="kbd">ㄲ</span>→<span class="kbd">ㅂ</span>)</p>
-  </section>
-
-  <section class="card">
-    <h3>② 능력치 확인 및 계산</h3>
-
-    <div class="row">
-      <div class="col">
-        <label>S급 기준 초기치 (체/공/방/순)</label>
-        <div class="row">
-          <div class="col"><input type="number" id="s0_hp"  step="0.01" placeholder="—" readonly /></div>
-          <div class="col"><input type="number" id="s0_atk" step="0.01" placeholder="—" readonly /></div>
-          <div class="col"><input type="number" id="s0_def" step="0.01" placeholder="—" readonly /></div>
-          <div class="col"><input type="number" id="s0_agi" step="0.01" placeholder="—" readonly /></div>
+          <div class="stat-col">
+            <label>공격력</label>
+            <div class="stat-box readonly"><input type="number" id="s0_atk" readonly placeholder="-"></div>
+            <div class="stat-box readonly" style="margin-top:6px"><input type="number" id="sg_atk" readonly placeholder="-"></div>
+          </div>
+          <div class="stat-col">
+            <label>방어력</label>
+            <div class="stat-box readonly"><input type="number" id="s0_def" readonly placeholder="-"></div>
+            <div class="stat-box readonly" style="margin-top:6px"><input type="number" id="sg_def" readonly placeholder="-"></div>
+          </div>
+          <div class="stat-col">
+            <label>순발력</label>
+            <div class="stat-box readonly"><input type="number" id="s0_agi" readonly placeholder="-"></div>
+            <div class="stat-box readonly" style="margin-top:6px"><input type="number" id="sg_agi" readonly placeholder="-"></div>
+          </div>
         </div>
 
-        <label style="margin-top:10px">S급 기준 성장률 (체/공/방/순)</label>
-        <div class="row">
-          <div class="col"><input type="number" id="sg_hp"  step="0.01" placeholder="—" readonly /></div>
-          <div class="col"><input type="number" id="sg_atk" step="0.01" placeholder="—" readonly /></div>
-          <div class="col"><input type="number" id="sg_def" step="0.01" placeholder="—" readonly /></div>
-          <div class="col"><input type="number" id="sg_agi" step="0.01" placeholder="—" readonly /></div>
-        </div>
-      </div>
-    </div>
-
-    <hr style="border:none;border-top:1px solid #2a3040; margin:14px 0" />
-
-    <div class="row">
-      <div class="col">
-        <label>내 페트 Lv 1 초기치 — 체/공/방/순</label>
-        <div class="row">
-          <div class="col">
-            <input type="number" id="obs_hp"  step="1" />
-            <div class="stepper">
-              <button class="btn btn-sm" data-target="obs_hp" data-delta="-1">-1</button>
-              <button class="btn btn-sm" data-target="obs_hp" data-delta="1">+1</button>
+        <div class="input-group-title" style="margin-top:30px; color:var(--accent);">Lv.1 페트 능력치</div>
+        <div class="stat-grid">
+          <div class="stat-col">
+            <label>내구력</label>
+            <div class="stat-box"><input type="number" id="obs_hp" placeholder="0"></div>
+            <div class="stepper-btn">
+              <button class="s-btn" data-target="obs_hp" data-delta="-1">-1</button>
+              <button class="s-btn" data-target="obs_hp" data-delta="1">+1</button>
             </div>
           </div>
-          <div class="col">
-            <input type="number" id="obs_atk" step="1" />
-            <div class="stepper">
-              <button class="btn btn-sm" data-target="obs_atk" data-delta="-1">-1</button>
-              <button class="btn btn-sm" data-target="obs_atk" data-delta="1">+1</button>
+          <div class="stat-col">
+            <label>공격력</label>
+            <div class="stat-box"><input type="number" id="obs_atk" placeholder="0"></div>
+            <div class="stepper-btn">
+              <button class="s-btn" data-target="obs_atk" data-delta="-1">-1</button>
+              <button class="s-btn" data-target="obs_atk" data-delta="1">+1</button>
             </div>
           </div>
-          <div class="col">
-            <input type="number" id="obs_def" step="1" />
-            <div class="stepper">
-              <button class="btn btn-sm" data-target="obs_def" data-delta="-1">-1</button>
-              <button class="btn btn-sm" data-target="obs_def" data-delta="1">+1</button>
+          <div class="stat-col">
+            <label>방어력</label>
+            <div class="stat-box"><input type="number" id="obs_def" placeholder="0"></div>
+            <div class="stepper-btn">
+              <button class="s-btn" data-target="obs_def" data-delta="-1">-1</button>
+              <button class="s-btn" data-target="obs_def" data-delta="1">+1</button>
             </div>
           </div>
-          <div class="col">
-            <input type="number" id="obs_agi" step="1" />
-            <div class="stepper">
-              <button class="btn btn-sm" data-target="obs_agi" data-delta="-1">-1</button>
-              <button class="btn btn-sm" data-target="obs_agi" data-delta="1">+1</button>
+          <div class="stat-col">
+            <label>순발력</label>
+            <div class="stat-box"><input type="number" id="obs_agi" placeholder="0"></div>
+            <div class="stepper-btn">
+              <button class="s-btn" data-target="obs_agi" data-delta="-1">-1</button>
+              <button class="s-btn" data-target="obs_agi" data-delta="1">+1</button>
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <div class="row" style="margin-top:12px">
-      <button class="btn primary" id="btnCalc">계산</button>
-      <button class="btn ghost" id="btnReset">리셋</button>
-      <span class="muted" style="margin-left:auto"> 클릭 후 마우스 휠로 Up/Down 가능</span>
-    </div>
-  </section>
+        <div class="action-btns">
+          <button class="btn-main btn-reset" id="btnReset">리셋</button>
+          <button class="btn-main btn-calc" id="btnCalc">분석 시작</button>
+        </div>
+      </section>
 
-  <section class="card full-width" id="resultCard">
-    <h3>③ 결과 분석</h3>
-    <div class="kpis">
-        <!-- 성공 확률 -->
-        <div class="kpi">
-          <div class="ringwrap">
-            <svg viewBox="0 0 100 100" aria-hidden="true">
-              <defs>
-                <circle id="succPath" cx="50" cy="50" r="45"/>
-                <mask id="succMask" maskUnits="userSpaceOnUse">
-                  <circle id="succMaskStroke" cx="50" cy="50" r="45"
-                          fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"
-                          transform="rotate(-90 50 50)"
-                          stroke-dasharray="0 1" stroke-dashoffset="0"/>
-                </mask>
-              </defs>
-    
-              <use href="#succPath" class="track" stroke-width="10" transform="rotate(-90 50 50)"/>
-              <use id="succFill" href="#succPath" class="fill" stroke-width="10"
-                   transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
-    
-              <!-- HUD 이펙트(성공 링에만) -->
-              <g id="succHUD" class="hud" mask="url(#succMask)">
-                <path id="succTail" class="tail" stroke-width="10"/>
-                <path id="succCore" class="core" stroke-width="6"/>
-                <circle id="succFlare" class="flare" r="3" cx="50" cy="5"/>
-              </g>
+      <!-- 결과 패널 (HUD 스타일) -->
+      <section class="panel result-panel">
+        <h2>ANALYSIS HUD</h2>
+        
+        <div class="hud-rings">
+          <!-- 성공 확률 -->
+          <div class="ring-container">
+            <svg class="ring-svg" viewBox="0 0 36 36">
+              <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path id="ringSuccess" class="ring-val" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
             </svg>
+            <div class="ring-text" id="kpiSuccess">0%</div>
+            <span class="ring-label">8등급 확률</span>
           </div>
-          <div>
-            <strong id="kpiSuccess">—%</strong>
-            <small>환각(8등급) 확률</small>
-          </div>
-        </div>
-    
-        <!-- 출현 확률 (게이지는 2%까지만 채움) -->
-        <div class="kpi">
-          <div class="ringwrap">
-            <svg viewBox="0 0 100 100" aria-hidden="true">
-              <circle id="apPath" cx="50" cy="50" r="43" fill="none"/>
-              <use href="#apPath" class="track" stroke-width="10" transform="rotate(-90 50 50)"/>
-              <use id="apFill"  href="#apPath" class="fill"  stroke="#7fd4ff" stroke-width="10"
-                   transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
+
+          <!-- 기대값 -->
+          <div class="ring-container">
+            <svg class="ring-svg" viewBox="0 0 36 36">
+              <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path id="ringTries" class="ring-val" style="stroke:#ffb300" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
             </svg>
-          </div>
-          <div>
-            <strong id="kpiAppear">—%</strong>
-            <span id="apBadge" class="badge" style="display:none">max 2%</span>
-            <small>출현 확률</small>
+            <div class="ring-text" id="kpiTries">-</div>
+            <span class="ring-label">시도 횟수</span>
           </div>
         </div>
-    
-        <!-- 성공 기대값 (200↑ 항상 100%) -->
-        <div class="kpi">
-          <div class="ringwrap">
-            <svg viewBox="0 0 100 100" aria-hidden="true">
-              <circle id="trPath" cx="50" cy="50" r="43" fill="none"/>
-              <use href="#trPath" class="track" stroke-width="10" transform="rotate(-90 50 50)"/>
-              <use id="trFill"  href="#trPath" class="fill" stroke="#999" stroke-width="10"
-                   transform="rotate(-90 50 50)" stroke-dasharray="0 1" stroke-dashoffset="0"/>
-            </svg>
+
+        <div class="stat-summary">
+          <div class="sum-item">
+            <span class="sum-label">출현 확률</span>
+            <span class="sum-val" id="kpiAppear" style="font-size:16px">-</span>
           </div>
-          <div>
-            <strong id="kpiTries">—</strong>
-            <small>성공 기대값(시도)</small>
+          <div class="sum-item">
+            <span class="sum-label">총 경우의 수</span>
+            <span class="sum-val" id="totMatches">-</span>
+          </div>
+          <div class="sum-item">
+            <span class="sum-label">8등급 매칭</span>
+            <span class="sum-val" id="rank8Matches">-</span>
           </div>
         </div>
-      </div>
-    <div style="margin-top:14px">
-      <div class="row">
-        <div class="col"><span class="muted">총 경우의 수:</span> <span class="badge" id="totMatches">—</span></div>
-        <div class="col"><span class="muted">환각 매칭:</span> <span class="badge" id="rank8Matches">—</span></div>
-      </div>
+
+        <div style="margin-top:20px; flex:1; display:flex; flex-direction:column;">
+          <div class="input-group-title">등급 분포</div>
+          
+          <!-- 수정된 결과 표시 영역 -->
+          <div id="dist">
+            <div style="text-align:center; color:var(--text-sub); padding:20px;">결과가 여기에 표시됩니다.</div>
+          </div>
+        </div>
+
+      </section>
     </div>
-    <details style="margin-top:12px">
-      <summary>등급 분포 자세히 보기</summary>
-      <div id="dist"></div>
-    </details>
-  </section>
+  </main>
 </div>
 
-<div class="footer">
-  <p> Data by. 꼬비아빠 </p>
-</div>
-
-<!-- 알림 메시지를 표시할 컨테이너 -->
+<!-- 알림 -->
 <div id="toastWrap"></div>
 
 <script>
-/* ========= 페트 데이터 ========= */
+/* ========= 페트 데이터 (Happy) ========= */
 const petData = {
     happy: {
         timestamp: "2025.11.10",
@@ -907,457 +1156,15 @@ const petData = {
             {"name":"메이티라노스","initnum":24,"hp":30,"atk":40,"def":13,"agi":34},
             {"name":"레오딘","initnum":25,"hp":29,"atk":41,"def":16,"agi":29},
         ]
-    },
-    nova: {
-        timestamp: "2025.11.21",
-        list: [
-            {"name":"우리","initnum":10,"hp":20,"atk":12,"def":15,"agi":25},
-            {"name":"두리","initnum":20,"hp":22,"atk":23,"def":11,"agi":23},
-            {"name":"얼룩우리","initnum":15,"hp":22,"atk":17,"def":19,"agi":17},
-            {"name":"불그리","initnum":10,"hp":25,"atk":23,"def":19,"agi":33},
-            {"name":"실버우리","initnum":20,"hp":22,"atk":22,"def":24,"agi":27},
-            {"name":"환생얼룩우리","initnum":25,"hp":30,"atk":24,"def":27,"agi":24},
-            {"name":"복우리","initnum":20,"hp":23,"atk":33,"def":14,"agi":18},
-            {"name":"푸우리","initnum":20,"hp":28,"atk":31,"def":13,"agi":29},
-            {"name":"녹우리","initnum":20,"hp":26,"atk":30,"def":21,"agi":25},
-            {"name":"우리스타","initnum":23,"hp":22,"atk":30,"def":12,"agi":24},
-            {"name":"부비","initnum":15,"hp":42,"atk":20,"def":16,"agi":12},
-            {"name":"골드부비","initnum":25,"hp":31,"atk":20,"def":32,"agi":12},
-            {"name":"부이","initnum":22,"hp":44,"atk":21,"def":16,"agi":13},
-            {"name":"부이비","initnum":16,"hp":32,"atk":26,"def":15,"agi":18},
-            {"name":"얼룩부이비","initnum":23,"hp":30,"atk":28,"def":14,"agi":20},
-            {"name":"푸비","initnum":24,"hp":31,"atk":36,"def":24,"agi":18},
-            {"name":"푸이","initnum":24,"hp":35,"atk":35,"def":21,"agi":18},
-            {"name":"깡우비","initnum":24,"hp":29,"atk":42,"def":18,"agi":24},
-            {"name":"꼬미","initnum":22,"hp":22,"atk":28,"def":15,"agi":27},
-            {"name":"꼬비","initnum":22,"hp":22,"atk":27,"def":17,"agi":27},
-            {"name":"꼬비오","initnum":22,"hp":21,"atk":27,"def":15,"agi":29},
-            {"name":"꼬꼬비","initnum":22,"hp":21,"atk":28,"def":15,"agi":28},
-            {"name":"꼬꼬미","initnum":22,"hp":25,"atk":29,"def":17,"agi":28},
-            {"name":"꼬이미","initnum":22,"hp":24,"atk":32,"def":16,"agi":29},
-            {"name":"돌꼬비","initnum":22,"hp":25,"atk":31,"def":17,"agi":25},
-            {"name":"푸미","initnum":25,"hp":32,"atk":37,"def":18,"agi":29},
-            {"name":"푸푸","initnum":13,"hp":18,"atk":20,"def":8,"agi":33},
-            {"name":"우푸","initnum":15,"hp":18,"atk":22,"def":7,"agi":32},
-            {"name":"투투","initnum":17,"hp":23,"atk":22,"def":8,"agi":26},
-            {"name":"오투투","initnum":20,"hp":20,"atk":19,"def":15,"agi":30},
-            {"name":"포포","initnum":15,"hp":21,"atk":25,"def":8,"agi":34},
-            {"name":"푸투투","initnum":15,"hp":28,"atk":27,"def":13,"agi":38},
-            {"name":"노투투","initnum":15,"hp":20,"atk":22,"def":7,"agi":35},
-            {"name":"푸투","initnum":15,"hp":22,"atk":24,"def":8,"agi":33},
-            {"name":"베론","initnum":23,"hp":42,"atk":18,"def":37,"agi":18},
-            {"name":"베로로크","initnum":19,"hp":39,"atk":19,"def":37,"agi":17},
-            {"name":"베로보크","initnum":23,"hp":38,"atk":18,"def":36,"agi":14},
-            {"name":"베로포리","initnum":22,"hp":34,"atk":25,"def":35,"agi":15},
-            {"name":"베톤","initnum":22,"hp":40,"atk":24,"def":38,"agi":14},
-            {"name":"베노투리","initnum":22,"hp":33,"atk":25,"def":38,"agi":19},
-            {"name":"베로바드","initnum":22,"hp":32,"atk":35,"def":31,"agi":19},
-            {"name":"베노노크","initnum":22,"hp":36,"atk":27,"def":30,"agi":22},
-            {"name":"노북이","initnum":14,"hp":22,"atk":18,"def":34,"agi":6},
-            {"name":"북이","initnum":14,"hp":22,"atk":19,"def":35,"agi":5},
-            {"name":"깡북이","initnum":12,"hp":21,"atk":24,"def":33,"agi":5},
-            {"name":"돌북이","initnum":20,"hp":23,"atk":19,"def":41,"agi":4},
-            {"name":"물북이","initnum":20,"hp":33,"atk":24,"def":31,"agi":5},
-            {"name":"철북이","initnum":20,"hp":21,"atk":27,"def":32,"agi":7},
-            {"name":"자라북","initnum":20,"hp":27,"atk":25,"def":40,"agi":2},
-            {"name":"킹북이","initnum":20,"hp":24,"atk":20,"def":43,"agi":6},
-            {"name":"아고아","initnum":20,"hp":25,"atk":39,"def":24,"agi":19},
-            {"name":"네고스","initnum":20,"hp":26,"atk":37,"def":26,"agi":18},
-            {"name":"타로곤","initnum":20,"hp":25,"atk":37,"def":26,"agi":18},
-            {"name":"다고스","initnum":20,"hp":27,"atk":38,"def":23,"agi":18},
-            {"name":"보크곤","initnum":20,"hp":23,"atk":38,"def":22,"agi":24},
-            {"name":"골드곤","initnum":20,"hp":24,"atk":31,"def":20,"agi":18},
-            {"name":"기고아","initnum":20,"hp":25,"atk":34,"def":23,"agi":16},
-            {"name":"타로아","initnum":20,"hp":25,"atk":36,"def":21,"agi":17},
-            {"name":"라고고","initnum":23,"hp":22,"atk":28,"def":17,"agi":26},
-            {"name":"후바바","initnum":24,"hp":22,"atk":25,"def":18,"agi":28},
-            {"name":"토루루","initnum":19,"hp":24,"atk":24,"def":23,"agi":27},
-            {"name":"루니","initnum":22,"hp":24,"atk":23,"def":25,"agi":22},
-            {"name":"푸고고","initnum":19,"hp":31,"atk":36,"def":17,"agi":31},
-            {"name":"라루루","initnum":19,"hp":27,"atk":35,"def":17,"agi":34},
-            {"name":"기바바","initnum":19,"hp":30,"atk":33,"def":26,"agi":27},
-            {"name":"주니","initnum":19,"hp":27,"atk":33,"def":18,"agi":35},
-            {"name":"쿠로로","initnum":23,"hp":30,"atk":27,"def":17,"agi":29},
-            {"name":"카타르카스","initnum":22,"hp":25,"atk":24,"def":40,"agi":5},
-            {"name":"쿠카스","initnum":22,"hp":27,"atk":21,"def":39,"agi":6},
-            {"name":"코로카스","initnum":17,"hp":29,"atk":26,"def":37,"agi":5},
-            {"name":"로기안","initnum":23,"hp":25,"atk":22,"def":39,"agi":7},
-            {"name":"램가스","initnum":20,"hp":32,"atk":25,"def":52,"agi":5},
-            {"name":"아이카스","initnum":22,"hp":31,"atk":23,"def":40,"agi":5},
-            {"name":"쿠타스","initnum":22,"hp":31,"atk":25,"def":33,"agi":5},
-            {"name":"카르기안","initnum":20,"hp":25,"atk":22,"def":36,"agi":10},
-            {"name":"리비노","initnum":25,"hp":27,"atk":37,"def":19,"agi":17},
-            {"name":"얀기로","initnum":24,"hp":34,"atk":40,"def":18,"agi":24},
-            {"name":"반보로","initnum":27,"hp":25,"atk":37,"def":16,"agi":21},
-            {"name":"반기노","initnum":26,"hp":24,"atk":38,"def":16,"agi":20},
-            {"name":"부르돈","initnum":25,"hp":25,"atk":35,"def":14,"agi":24},
-            {"name":"기비노","initnum":24,"hp":25,"atk":38,"def":14,"agi":21},
-            {"name":"프로돈","initnum":25,"hp":36,"atk":39,"def":17,"agi":25},
-            {"name":"테이노스","initnum":25,"hp":35,"atk":42,"def":19,"agi":23},
-            {"name":"쿠링","initnum":19,"hp":23,"atk":20,"def":22,"agi":24},
-            {"name":"쿠쿠르","initnum":20,"hp":24,"atk":20,"def":19,"agi":26},
-            {"name":"포링","initnum":18,"hp":22,"atk":20,"def":18,"agi":24},
-            {"name":"리스키","initnum":17,"hp":26,"atk":18,"def":21,"agi":24},
-            {"name":"노스키","initnum":17,"hp":24,"atk":25,"def":18,"agi":35},
-            {"name":"라스키","initnum":17,"hp":26,"atk":29,"def":18,"agi":29},
-            {"name":"토끼","initnum":17,"hp":31,"atk":30,"def":22,"agi":32},
-            {"name":"범링","initnum":17,"hp":27,"atk":30,"def":19,"agi":32},
-            {"name":"초코링","initnum":24,"hp":28,"atk":38,"def":17,"agi":20},
-            {"name":"하트링","initnum":22,"hp":27,"atk":33,"def":13,"agi":30},
-            {"name":"카비트","initnum":18,"hp":14,"atk":19,"def":19,"agi":27},
-            {"name":"케이비","initnum":20,"hp":14,"atk":19,"def":19,"agi":27},
-            {"name":"큐이","initnum":15,"hp":13,"atk":20,"def":17,"agi":25},
-            {"name":"골드카비트","initnum":19,"hp":16,"atk":20,"def":16,"agi":28},
-            {"name":"블루카비트","initnum":21,"hp":25,"atk":24,"def":12,"agi":26},
-            {"name":"연두큐이","initnum":21,"hp":23,"atk":25,"def":14,"agi":24},
-            {"name":"키라비","initnum":20,"hp":23,"atk":27,"def":12,"agi":28},
-            {"name":"카이비","initnum":20,"hp":23,"atk":26,"def":16,"agi":26},
-            {"name":"고르돈","initnum":24,"hp":27,"atk":31,"def":24,"agi":18},
-            {"name":"기라돈","initnum":24,"hp":28,"atk":31,"def":22,"agi":19},
-            {"name":"투르돈","initnum":24,"hp":26,"atk":28,"def":16,"agi":16},
-            {"name":"고르고","initnum":24,"hp":22,"atk":29,"def":16,"agi":16},
-            {"name":"철기돈","initnum":24,"hp":30,"atk":33,"def":21,"agi":20},
-            {"name":"실버고르돈","initnum":24,"hp":33,"atk":44,"def":18,"agi":22},
-            {"name":"고라돈","initnum":24,"hp":28,"atk":31,"def":25,"agi":18},
-            {"name":"그린고르","initnum":25,"hp":35,"atk":31,"def":29,"agi":3},
-            {"name":"휴보","initnum":18,"hp":26,"atk":28,"def":25,"agi":16},
-            {"name":"포보","initnum":19,"hp":28,"atk":23,"def":26,"agi":14},
-            {"name":"쿠보","initnum":25,"hp":26,"atk":26,"def":26,"agi":17},
-            {"name":"토로쟈","initnum":21,"hp":25,"atk":26,"def":25,"agi":16},
-            {"name":"부르보","initnum":20,"hp":23,"atk":25,"def":24,"agi":20},
-            {"name":"푸보","initnum":18,"hp":30,"atk":29,"def":22,"agi":16},
-            {"name":"타루쟈","initnum":18,"hp":26,"atk":35,"def":20,"agi":17},
-            {"name":"노보","initnum":18,"hp":26,"atk":29,"def":23,"agi":20},
-            {"name":"카쿠","initnum":18,"hp":28,"atk":29,"def":25,"agi":32},
-            {"name":"바카","initnum":20,"hp":19,"atk":27,"def":20,"agi":28},
-            {"name":"바우","initnum":17,"hp":18,"atk":23,"def":20,"agi":28},
-            {"name":"카우","initnum":17,"hp":16,"atk":23,"def":23,"agi":26},
-            {"name":"바카우","initnum":18,"hp":21,"atk":30,"def":16,"agi":29},
-            {"name":"바쿠우","initnum":18,"hp":30,"atk":35,"def":20,"agi":30},
-            {"name":"푸쿠","initnum":18,"hp":21,"atk":31,"def":15,"agi":28},
-            {"name":"바쿠","initnum":18,"hp":24,"atk":33,"def":21,"agi":28},
-            {"name":"베르가","initnum":24,"hp":24,"atk":29,"def":14,"agi":26},
-            {"name":"베루루","initnum":23,"hp":21,"atk":30,"def":13,"agi":28},
-            {"name":"고르고르","initnum":21,"hp":20,"atk":31,"def":13,"agi":27},
-            {"name":"노르노르","initnum":25,"hp":22,"atk":30,"def":17,"agi":29},
-            {"name":"도르도르","initnum":24,"hp":27,"atk":33,"def":14,"agi":30},
-            {"name":"고루루","initnum":24,"hp":26,"atk":33,"def":14,"agi":30},
-            {"name":"페루루","initnum":24,"hp":26,"atk":35,"def":15,"agi":32},
-            {"name":"하르가","initnum":23,"hp":30,"atk":38,"def":16,"agi":31},
-            {"name":"테르가","initnum":22,"hp":28,"atk":39,"def":12,"agi":36},
-            {"name":"체루루","initnum":26,"hp":26,"atk":36,"def":14,"agi":32},
-            {"name":"토리노프스","initnum":12,"hp":26,"atk":21,"def":26,"agi":12},
-            {"name":"펜타스","initnum":16,"hp":28,"atk":17,"def":28,"agi":11},
-            {"name":"토리케라","initnum":18,"hp":27,"atk":18,"def":28,"agi":10},
-            {"name":"토르프스","initnum":14,"hp":26,"atk":19,"def":29,"agi":9},
-            {"name":"코발스","initnum":14,"hp":45,"atk":27,"def":34,"agi":11},
-            {"name":"노타스","initnum":14,"hp":34,"atk":26,"def":37,"agi":20},
-            {"name":"타르프스","initnum":14,"hp":34,"atk":26,"def":42,"agi":11},
-            {"name":"고반케스","initnum":20,"hp":27,"atk":33,"def":15,"agi":16},
-            {"name":"쟈그라","initnum":20,"hp":26,"atk":34,"def":14,"agi":17},
-            {"name":"쟈그","initnum":20,"hp":30,"atk":33,"def":13,"agi":17},
-            {"name":"판지","initnum":20,"hp":29,"atk":33,"def":14,"agi":17},
-            {"name":"석화케스","initnum":24,"hp":27,"atk":34,"def":15,"agi":17},
-            {"name":"판그라","initnum":24,"hp":26,"atk":34,"def":14,"agi":18},
-            {"name":"판그","initnum":24,"hp":26,"atk":33,"def":16,"agi":17},
-            {"name":"쟈하드","initnum":24,"hp":25,"atk":36,"def":15,"agi":22},
-            {"name":"기가로스","initnum":28,"hp":30,"atk":34,"def":32,"agi":20},
-            {"name":"메가로스","initnum":24,"hp":33,"atk":36,"def":33,"agi":13},
-            {"name":"비트로스","initnum":25,"hp":30,"atk":37,"def":27,"agi":21},
-            {"name":"가가로스","initnum":26,"hp":32,"atk":40,"def":27,"agi":15},
-            {"name":"라가로스","initnum":21,"hp":37,"atk":39,"def":32,"agi":8},
-            {"name":"기트로스","initnum":25,"hp":27,"atk":33,"def":20,"agi":10},
-            {"name":"노트로스","initnum":24,"hp":40,"atk":34,"def":32,"agi":10},
-            {"name":"루이","initnum":22,"hp":40,"atk":32,"def":33,"agi":10},
-            {"name":"무이","initnum":20,"hp":44,"atk":30,"def":33,"agi":10},
-            {"name":"씨보스","initnum":21,"hp":41,"atk":30,"def":35,"agi":10},
-            {"name":"투이","initnum":24,"hp":39,"atk":34,"def":33,"agi":9},
-            {"name":"누이","initnum":20,"hp":36,"atk":32,"def":38,"agi":10},
-            {"name":"다크무이","initnum":24,"hp":34,"atk":29,"def":29,"agi":4},
-            {"name":"다이노","initnum":25,"hp":37,"atk":31,"def":34,"agi":6},
-            {"name":"다이노스","initnum":26,"hp":46,"atk":30,"def":35,"agi":7},
-            {"name":"프라키토스","initnum":24,"hp":35,"atk":35,"def":28,"agi":6},
-            {"name":"스텐토스","initnum":28,"hp":45,"atk":32,"def":34,"agi":5},
-            {"name":"프리토스","initnum":28,"hp":41,"atk":34,"def":33,"agi":11},
-            {"name":"브라키오스","initnum":28,"hp":40,"atk":32,"def":40,"agi":7},
-            {"name":"노라키토스","initnum":28,"hp":41,"atk":34,"def":36,"agi":10},
-            {"name":"만모","initnum":25,"hp":47,"atk":26,"def":39,"agi":6},
-            {"name":"만모르","initnum":24,"hp":45,"atk":32,"def":35,"agi":6},
-            {"name":"마모나스","initnum":25,"hp":49,"atk":26,"def":37,"agi":6},
-            {"name":"만모로스","initnum":25,"hp":50,"atk":28,"def":34,"agi":6},
-            {"name":"메모스","initnum":25,"hp":49,"atk":27,"def":39,"agi":5},
-            {"name":"실버로스","initnum":25,"hp":54,"atk":26,"def":37,"agi":6},
-            {"name":"테라곤","initnum":26,"hp":24,"atk":31,"def":15,"agi":32},
-            {"name":"카르곤","initnum":26,"hp":23,"atk":31,"def":13,"agi":30},
-            {"name":"포이비스","initnum":24,"hp":27,"atk":34,"def":21,"agi":32},
-            {"name":"도라비스","initnum":26,"hp":24,"atk":31,"def":14,"agi":33},
-            {"name":"푸테라","initnum":26,"hp":32,"atk":34,"def":17,"agi":32},
-            {"name":"실버라곤","initnum":26,"hp":30,"atk":34,"def":20,"agi":31},
-            {"name":"보르비스","initnum":25,"hp":27,"atk":35,"def":19,"agi":31},
-            {"name":"테라돈","initnum":25,"hp":34,"atk":33,"def":17,"agi":32},
-            {"name":"골드테라곤","initnum":26,"hp":24,"atk":31,"def":15,"agi":32},
-            {"name":"타키","initnum":20,"hp":19,"atk":22,"def":10,"agi":35},
-            {"name":"쿠쿠","initnum":20,"hp":18,"atk":22,"def":10,"agi":36},
-            {"name":"호르쿠","initnum":20,"hp":20,"atk":21,"def":12,"agi":34},
-            {"name":"카키","initnum":20,"hp":17,"atk":23,"def":11,"agi":33},
-            {"name":"타르쿠","initnum":20,"hp":21,"atk":22,"def":13,"agi":33},
-            {"name":"푸타카","initnum":20,"hp":23,"atk":21,"def":12,"agi":33},
-            {"name":"쥬키","initnum":20,"hp":19,"atk":25,"def":9,"agi":34},
-            {"name":"오가로스","initnum":24,"hp":30,"atk":37,"def":28,"agi":20},
-            {"name":"오르곤","initnum":22,"hp":35,"atk":39,"def":16,"agi":28},
-            {"name":"모가로스","initnum":25,"hp":27,"atk":41,"def":18,"agi":28},
-            {"name":"골로스","initnum":28,"hp":31,"atk":41,"def":20,"agi":25},
-            {"name":"노르곤","initnum":26,"hp":28,"atk":37,"def":17,"agi":33},
-            {"name":"지가로스","initnum":26,"hp":30,"atk":40,"def":22,"agi":23},
-            {"name":"푸룡","initnum":25,"hp":28,"atk":40,"def":13,"agi":27},
-            {"name":"칼로스","initnum":26,"hp":30,"atk":40,"def":17,"agi":29},
-            {"name":"카르노스","initnum":25,"hp":26,"atk":35,"def":18,"agi":25},
-            {"name":"흑귀","initnum":24,"hp":30,"atk":42,"def":19,"agi":25},
-            {"name":"카가로스","initnum":25,"hp":27,"atk":39,"def":15,"agi":27},
-            {"name":"파베로스","initnum":24,"hp":28,"atk":38,"def":15,"agi":33},
-            {"name":"토룡","initnum":26,"hp":24,"atk":34,"def":13,"agi":23},
-            {"name":"프이토","initnum":26,"hp":19,"atk":22,"def":25,"agi":29},
-            {"name":"모나시프","initnum":25,"hp":23,"atk":23,"def":24,"agi":28},
-            {"name":"라나프","initnum":28,"hp":18,"atk":26,"def":24,"agi":29},
-            {"name":"차이혼","initnum":28,"hp":28,"atk":27,"def":26,"agi":34},
-            {"name":"파라프","initnum":28,"hp":26,"atk":28,"def":24,"agi":36},
-            {"name":"스토라지","initnum":21,"hp":35,"atk":26,"def":23,"agi":20},
-            {"name":"아토라지","initnum":20,"hp":39,"atk":29,"def":24,"agi":23},
-            {"name":"아리노스","initnum":26,"hp":34,"atk":26,"def":25,"agi":19},
-            {"name":"다이노로스","initnum":24,"hp":36,"atk":32,"def":23,"agi":25},
-            {"name":"타르노로스","initnum":23,"hp":40,"atk":31,"def":24,"agi":24},
-            {"name":"노리노스","initnum":29,"hp":28,"atk":32,"def":21,"agi":33},
-            {"name":"푸토라지","initnum":24,"hp":34,"atk":36,"def":21,"agi":26},
-            {"name":"코리노로스","initnum":24,"hp":30,"atk":39,"def":17,"agi":29},
-            {"name":"바로로크스","initnum":22,"hp":24,"atk":19,"def":24,"agi":18},
-            {"name":"란베르스","initnum":21,"hp":26,"atk":21,"def":21,"agi":22},
-            {"name":"코리토르스","initnum":19,"hp":24,"atk":20,"def":22,"agi":20},
-            {"name":"노스토로스","initnum":24,"hp":21,"atk":24,"def":19,"agi":23},
-            {"name":"노로로크스","initnum":23,"hp":29,"atk":34,"def":17,"agi":33},
-            {"name":"실버로크스","initnum":25,"hp":32,"atk":36,"def":19,"agi":30},
-            {"name":"디로로크스","initnum":24,"hp":26,"atk":28,"def":21,"agi":28},
-            {"name":"진주토로스","initnum":23,"hp":30,"atk":22,"def":27,"agi":23},
-            {"name":"케로푸스","initnum":26,"hp":30,"atk":38,"def":23,"agi":18},
-            {"name":"엘크룬","initnum":25,"hp":24,"atk":35,"def":12,"agi":27},
-            {"name":"타라티스","initnum":24,"hp":30,"atk":42,"def":22,"agi":21},
-            {"name":"카라쿠","initnum":22,"hp":28,"atk":38,"def":15,"agi":32},
-            {"name":"파라쿠","initnum":22,"hp":30,"atk":39,"def":14,"agi":31},
-            {"name":"토라쿠","initnum":22,"hp":28,"atk":39,"def":14,"agi":32},
-            {"name":"차라쿠","initnum":22,"hp":28,"atk":39,"def":13,"agi":33},
-            {"name":"타라미우스","initnum":22,"hp":30,"atk":42,"def":24,"agi":19},
-            {"name":"보라미우스","initnum":22,"hp":34,"atk":40,"def":24,"agi":19},
-            {"name":"미라미우스","initnum":22,"hp":30,"atk":43,"def":23,"agi":19},
-            {"name":"로라미우스","initnum":22,"hp":30,"atk":40,"def":24,"agi":21},
-            {"name":"테이토스","initnum":25,"hp":42,"atk":38,"def":35,"agi":4},
-            {"name":"젖소","initnum":22,"hp":28,"atk":35,"def":16,"agi":25},
-            {"name":"화우","initnum":23,"hp":28,"atk":40,"def":17,"agi":23},
-            {"name":"하누","initnum":22,"hp":31,"atk":37,"def":18,"agi":23},
-            {"name":"흑우","initnum":23,"hp":29,"atk":38,"def":17,"agi":24},
-            {"name":"핑코","initnum":27,"hp":23,"atk":36,"def":14,"agi":25},
-            {"name":"고로","initnum":24,"hp":41,"atk":35,"def":37,"agi":7},
-            {"name":"키로","initnum":24,"hp":42,"atk":34,"def":38,"agi":4},
-            {"name":"로코","initnum":24,"hp":39,"atk":41,"def":31,"agi":6},
-            {"name":"가스트","initnum":24,"hp":27,"atk":41,"def":20,"agi":27},
-            {"name":"테라탄","initnum":24,"hp":24,"atk":31,"def":13,"agi":30},
-            {"name":"게이블","initnum":24,"hp":33,"atk":34,"def":31,"agi":20},
-            {"name":"가우","initnum":24,"hp":33,"atk":37,"def":15,"agi":33},
-            {"name":"포루나","initnum":23,"hp":27,"atk":31,"def":13,"agi":30},
-            {"name":"피피아","initnum":23,"hp":24,"atk":29,"def":14,"agi":29},
-            {"name":"사루나","initnum":23,"hp":20,"atk":25,"def":10,"agi":35},
-            {"name":"포레스트크랩","initnum":24,"hp":43,"atk":32,"def":32,"agi":5},
-            {"name":"크랩","initnum":21,"hp":35,"atk":35,"def":26,"agi":21},
-            {"name":"킹크랩","initnum":21,"hp":40,"atk":38,"def":34,"agi":4},
-            {"name":"지라크","initnum":23,"hp":27,"atk":35,"def":21,"agi":19},
-            {"name":"데블로스","initnum":21,"hp":21,"atk":30,"def":8,"agi":31},
-            {"name":"스노밍코","initnum":26,"hp":26,"atk":23,"def":15,"agi":29},
-            {"name":"밍코","initnum":26,"hp":23,"atk":29,"def":13,"agi":26},
-            {"name":"링코","initnum":22,"hp":54,"atk":29,"def":13,"agi":33},
-            {"name":"한복밍코","initnum":26,"hp":26,"atk":35,"def":15,"agi":32},
-            {"name":"쿠아","initnum":22,"hp":29,"atk":34,"def":19,"agi":29},
-            {"name":"쿠팡","initnum":22,"hp":22,"atk":30,"def":8,"agi":26},
-            {"name":"크루거","initnum":24,"hp":30,"atk":35,"def":17,"agi":33},
-            {"name":"카우거","initnum":23,"hp":29,"atk":39,"def":15,"agi":32},
-            {"name":"크로아치","initnum":23,"hp":30,"atk":39,"def":23,"agi":23},
-            {"name":"샤크론","initnum":23,"hp":31,"atk":37,"def":15,"agi":33},
-            {"name":"다크론","initnum":24,"hp":32,"atk":41,"def":22,"agi":22},
-            {"name":"차크론","initnum":24,"hp":27,"atk":35,"def":14,"agi":28},
-            {"name":"갈푸스","initnum":24,"hp":27,"atk":40,"def":14,"agi":33},
-            {"name":"흑갈푸스","initnum":22,"hp":28,"atk":38,"def":14,"agi":34},
-            {"name":"카르카로돈","initnum":24,"hp":28,"atk":35,"def":18,"agi":33},
-            {"name":"노바티","initnum":21,"hp":30,"atk":39,"def":30,"agi":27},
-            {"name":"키파","initnum":24,"hp":25,"atk":34,"def":14,"agi":26},
-            {"name":"테로노돈","initnum":22,"hp":27,"atk":31,"def":10,"agi":34},
-            {"name":"메피노","initnum":25,"hp":30,"atk":41,"def":19,"agi":26},
-            {"name":"야크노","initnum":25,"hp":28,"atk":37,"def":16,"agi":23},
-            {"name":"흑기린","initnum":24,"hp":27,"atk":40,"def":18,"agi":19},
-            {"name":"모사크","initnum":24,"hp":31,"atk":40,"def":17,"agi":28},
-            {"name":"블랙펄","initnum":25,"hp":25,"atk":34,"def":12,"agi":31},
-            {"name":"블루문","initnum":25,"hp":30,"atk":40,"def":17,"agi":28},
-            {"name":"쿠오코마","initnum":24,"hp":33,"atk":39,"def":22,"agi":20},
-            {"name":"라이칸","initnum":26,"hp":30,"atk":41,"def":20,"agi":24},
-            {"name":"한복메이","initnum":26,"hp":24,"atk":31,"def":12,"agi":27},
-            {"name":"아누","initnum":22,"hp":22,"atk":29,"def":12,"agi":29},
-            {"name":"카누","initnum":22,"hp":21,"atk":25,"def":11,"agi":31},
-            {"name":"아르카","initnum":24,"hp":23,"atk":30,"def":12,"agi":32},
-            {"name":"해태","initnum":24,"hp":30,"atk":39,"def":22,"agi":25},
-            {"name":"해치","initnum":24,"hp":25,"atk":34,"def":13,"agi":31},
-            {"name":"도철","initnum":24,"hp":31,"atk":41,"def":20,"agi":24},
-            {"name":"쟈무시","initnum":24,"hp":38,"atk":32,"def":44,"agi":3},
-            {"name":"샤우트","initnum":24,"hp":40,"atk":37,"def":36,"agi":6},
-            {"name":"마스타로","initnum":25,"hp":28,"atk":40,"def":13,"agi":28},
-            {"name":"구루마루","initnum":25,"hp":30,"atk":40,"def":17,"agi":29},
-            {"name":"기로아치","initnum":24,"hp":29,"atk":37,"def":19,"agi":22},
-            {"name":"호르카","initnum":23,"hp":28,"atk":35,"def":17,"agi":27},
-            {"name":"펠트르돈","initnum":26,"hp":27,"atk":36,"def":16,"agi":22},
-            {"name":"타키온","initnum":23,"hp":30,"atk":34,"def":14,"agi":30},
-            {"name":"푸타푸타","initnum":22,"hp":22,"atk":27,"def":11,"agi":35},
-            {"name":"라이쿠스","initnum":23,"hp":35,"atk":33,"def":33,"agi":7},
-            {"name":"라피노","initnum":26,"hp":27,"atk":35,"def":15,"agi":22},
-            {"name":"카멜로돈","initnum":26,"hp":27,"atk":34,"def":15,"agi":28},
-            {"name":"아비시니안","initnum":26,"hp":22,"atk":32,"def":14,"agi":25},
-            {"name":"뉴로아","initnum":23,"hp":29,"atk":31,"def":22,"agi":18},
-            {"name":"호크곤","initnum":24,"hp":32,"atk":33,"def":22,"agi":17},
-            {"name":"기라노","initnum":26,"hp":32,"atk":43,"def":18,"agi":23},
-            {"name":"노라돈","initnum":24,"hp":28,"atk":35,"def":19,"agi":20},
-            {"name":"타노프스","initnum":24,"hp":42,"atk":26,"def":37,"agi":9},
-            {"name":"돌가로스","initnum":26,"hp":32,"atk":30,"def":33,"agi":8},
-            {"name":"가이","initnum":20,"hp":46,"atk":33,"def":32,"agi":8},
-            {"name":"루보스","initnum":20,"hp":40,"atk":32,"def":37,"agi":7},
-            {"name":"노보스","initnum":20,"hp":36,"atk":34,"def":33,"agi":13},
-            {"name":"푸모나스","initnum":25,"hp":53,"atk":26,"def":36,"agi":5},
-            {"name":"만모드","initnum":25,"hp":43,"atk":28,"def":39,"agi":4},
-            {"name":"아르마루","initnum":25,"hp":28,"atk":39,"def":19,"agi":27},
-            {"name":"우라노스","initnum":27,"hp":22,"atk":30,"def":11,"agi":26},
-            {"name":"그램고르","initnum":24,"hp":37,"atk":29,"def":30,"agi":3},
-            {"name":"흑룡","initnum":25,"hp":28,"atk":36,"def":13,"agi":32},
-            {"name":"바우트","initnum":25,"hp":40,"atk":39,"def":36,"agi":3},
-            {"name":"토우트","initnum":25,"hp":48,"atk":33,"def":37,"agi":5},
-            {"name":"아리","initnum":24,"hp":26,"atk":33,"def":12,"agi":42},
-            {"name":"청룡","initnum":25,"hp":33,"atk":42,"def":17,"agi":27},
-            {"name":"현무","initnum":25,"hp":44,"atk":33,"def":39,"agi":7},
-            {"name":"풍백","initnum":25,"hp":26,"atk":35,"def":13,"agi":30},
-            {"name":"주작","initnum":25,"hp":29,"atk":41,"def":13,"agi":33},
-            {"name":"엘르벨","initnum":26,"hp":28,"atk":36,"def":14,"agi":31},
-            {"name":"헤르마루","initnum":27,"hp":25,"atk":36,"def":14,"agi":24},
-            {"name":"가르마루","initnum":27,"hp":25,"atk":35,"def":14,"agi":25},
-            {"name":"베르마루","initnum":26,"hp":23,"atk":32,"def":12,"agi":27},
-            {"name":"화이트골로스","initnum":25,"hp":31,"atk":43,"def":20,"agi":23},
-            {"name":"노르푸스","initnum":24,"hp":27,"atk":38,"def":13,"agi":31},
-            {"name":"카무르","initnum":25,"hp":26,"atk":40,"def":16,"agi":22},
-            {"name":"다이피노","initnum":26,"hp":27,"atk":39,"def":16,"agi":27},
-            {"name":"봉봉","initnum":26,"hp":25,"atk":36,"def":16,"agi":22},          
-        ]
     }
 };
 
-/* ========= 상수 ========= */
-const TOTAL = 178750;
-
-/* ========= 즐겨찾기 (수정됨) ========= */
-let FAVS = [];
-
-/**
- * [수정] 현재 활성화된 모드(happy/nova)에 따라 다른 LocalStorage 키를 반환합니다.
- * @returns {string} LocalStorage 키
- */
-function getFavLsKey() {
-  return `pet_favs_v1_${currentMode}`;
-}
-
-/**
- * [수정] 현재 모드에 맞는 즐겨찾기 목록을 LocalStorage에서 불러옵니다.
- */
-function loadFavs(){
-  try{
-    const key = getFavLsKey(); // 모드에 맞는 키 사용
-    const arr = JSON.parse(localStorage.getItem(key)||"[]");
-    return Array.isArray(arr) ? arr.filter(x=>typeof x==="string").slice(0,5) : [];
-  }catch{ return []; }
-}
-
-/**
- * [수정] 현재 모드의 즐겨찾기 목록을 LocalStorage에 저장합니다.
- */
-function saveFavs(){
-  const key = getFavLsKey(); // 모드에 맞는 키 사용
-  localStorage.setItem(key, JSON.stringify(FAVS));
-}
-function isFav(name){ return FAVS.includes(name); }
-function showToast(msg, ms=1500){
-  const wrap = document.getElementById("toastWrap");
-  if (!wrap) return;
-  const t = document.createElement("div");
-  t.className = "toast";
-  t.style.cssText = `
-    background: #232a36; color: #e8ecf3; padding: 10px 16px; border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.3); font-size: 14px;
-    opacity: 0; transform: translateY(10px); transition: all .25s ease;
-  `;
-  t.textContent = msg;
-  wrap.appendChild(t);
-  void t.offsetWidth; // reflow
-  t.style.opacity = '1';
-  t.style.transform = 'translateY(0)';
-  setTimeout(()=>{
-    t.style.opacity = '0';
-    t.style.transform = 'translateY(10px)';
-    setTimeout(()=>wrap.removeChild(t), 250);
-  }, ms);
-}
-function renderFavChips(){
-  const box = document.getElementById("favChips");
-  if(!box) return;
-  box.innerHTML = "";
-  if(FAVS.length===0){
-    const span = document.createElement("span"); span.className="muted"; span.textContent="—";
-    box.appendChild(span); return;
-  }
-  FAVS.forEach(n=>{
-    const c = document.createElement("div");
-    c.className="chip"; c.textContent=n; c.title=`${n} 선택`;
-    c.addEventListener("click", ()=>{
-      // 필터 초기화 후 해당 펫 선택
-      petSearch.value=""; currentChosung="";
-      Array.from(chosungBar.children).forEach(el=>el.classList.remove('on'));
-      renderPetList();
-      const items = Array.from(petList.children);
-      const el = items.find(div => div.firstChild && div.firstChild.textContent === n);
-      if(el){ el.click(); el.scrollIntoView({block:'nearest'}); }
-    });
-    box.appendChild(c);
-  });
-}
-function addFav(name){
-  if(isFav(name)) return;
-  if(FAVS.length >= 5){ showToast("즐겨찾기는 최대 5마리까지 가능합니다."); return; }
-  FAVS.push(name); saveFavs(); renderFavChips(); renderPetList(); showToast("즐겨찾기에 추가되었습니다.");
-}
-function removeFav(name){
-  const i = FAVS.indexOf(name);
-  if(i>=0){ FAVS.splice(i,1); saveFavs(); renderFavChips(); renderPetList(); showToast("즐겨찾기에서 제거했습니다."); }
-}
-function toggleFav(name){ isFav(name) ? removeFav(name) : addFav(name); }
-  
-/* ========= 전역 ========= */
+/* ========= 전역 변수 & 유틸 ========= */
 let GLOBAL_TABLE = {};
 let ALL_NAMES = [];
-let currentMode = '';
+let FAVS = [];
+const TOTAL = 178750;
 
-/* ========= 초성(문자 → 초성) 유틸 ========= */
-const CHO_CODE = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-const CHO_SIMPLE = (c)=>({"ㄲ":"ㄱ","ㄸ":"ㄷ","ㅃ":"ㅂ","ㅆ":"ㅅ","ㅉ":"ㅈ"}[c]||c);
-function getChosung(str){
-  let out="";
-  for(const ch of str){
-    const code = ch.charCodeAt(0);
-    if(code<0xAC00 || code>0xD7A3){ out+=ch; continue; }
-    const idx = Math.floor((code - 0xAC00) / 588);
-    out += CHO_SIMPLE(CHO_CODE[idx]);
-  }
-  return out;
-}
-
-/* ========= 데이터 변환 및 로드 ========= */
 function getRank(p) {
     if (p.rank) return p.rank;
     const totalStats = p.hp + p.atk + p.def + p.agi;
@@ -1374,17 +1181,14 @@ function getRank(p) {
 function calculateS0(k, u) {
     const preciseRound = (num) => Math.round(num * 1e12) / 1e12;
     const fac = k / 100;
-    // 꼬비아빠 계산기 로직: base(+2)와 bonus(+2.5)를 더한 +4.5를 적용
     const vhp  = (u.hp + 4.5) * fac;
     const vatk = (u.atk+ 4.5) * fac;
     const vdef = (u.def+ 4.5) * fac;
     const vagi = (u.agi+ 4.5) * fac;
-
     const hp  = preciseRound(vhp);
     const atk = preciseRound(vatk);
     const def = preciseRound(vdef);
     const agi = preciseRound(vagi);
-
     return {
         hp: preciseRound((hp * 4) + atk + def + agi),
         atk: preciseRound((hp * 0.1) + atk + (def * 0.1) + (agi * 0.05)),
@@ -1396,17 +1200,14 @@ function calculateS0(k, u) {
 function calculateSg(u, e) {
     const preciseRound = (num) => Math.round(num * 1e12) / 1e12;
     const f = e / 10000;
-    // 꼬비아빠 계산기 로직: base(+2)와 bonus(+2.5)를 더한 +4.5를 적용
     const u_hp = u.hp + 4.5;
     const u_atk = u.atk + 4.5;
     const u_def = u.def + 4.5;
     const u_agi = u.agi + 4.5;
-
     const upHp  = preciseRound(u_hp  * f);
     const upAtk = preciseRound(u_atk * f);
     const upDef = preciseRound(u_def * f);
     const upAgi = preciseRound(u_agi * f);
-
     return {
         hp:  preciseRound((upHp * 4) + upAtk + upDef + upAgi),
         atk: preciseRound((upHp * 0.1) + upAtk + (upDef * 0.1) + (upAgi * 0.05)),
@@ -1417,7 +1218,7 @@ function calculateSg(u, e) {
 
 function buildPetTable() {
     GLOBAL_TABLE = {};
-    const sourceData = petData[currentMode].list;
+    const sourceData = petData.happy.list;
     for (const p of sourceData) {
         const u = { hp: p.hp, atk: p.atk, def: p.def, agi: p.agi };
         const k = p.initnum;
@@ -1429,314 +1230,194 @@ function buildPetTable() {
     ALL_NAMES = Object.keys(GLOBAL_TABLE).sort((a,b)=>a.localeCompare(b,'ko'));
 }
 
+/* ========= 즐겨찾기 로직 ========= */
+function getFavLsKey() { return `pet_favs_v1_happy`; }
+function loadFavs(){ try{ return JSON.parse(localStorage.getItem(getFavLsKey())||"[]"); }catch{return[];} }
+function saveFavs(){ localStorage.setItem(getFavLsKey(), JSON.stringify(FAVS)); }
+function isFav(n){ return FAVS.includes(n); }
+function toggleFav(n){
+  if(isFav(n)) FAVS = FAVS.filter(x=>x!==n);
+  else { if(FAVS.length>=5){ showToast("최대 5개까지만 즐겨찾기 가능"); return; } FAVS.push(n); }
+  saveFavs(); renderFavChips(); renderPetList();
+}
 
-/* ========= DOM ========= */
-const brandTitle = document.getElementById('brand-title');
-const dataTimestamp = document.getElementById('data-timestamp');
-const chosungBar = document.getElementById('chosung');
+/* ========= UI 로직 ========= */
+const petListEl = document.getElementById('petList');
+const searchInput = document.getElementById('petSearch');
+let selectedName = null;
+
+// [초성 검색 로직 이식] - 꼬비아빠 놀이터 스타일 (순차 입력)
+const CHO_CODE = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const CHO_SIMPLE = (c)=>({"ㄲ":"ㄱ","ㄸ":"ㄷ","ㅃ":"ㅂ","ㅆ":"ㅅ","ㅉ":"ㅈ"}[c]||c);
+
+// 문자열 -> 초성 변환 (단일화된 자음으로)
+function getChosung(str){
+  let out="";
+  for(const ch of str){
+    const code = ch.charCodeAt(0);
+    if(code<0xAC00 || code>0xD7A3){ out+=ch; continue; }
+    const idx = Math.floor((code - 0xAC00) / 588);
+    out += CHO_SIMPLE(CHO_CODE[idx]);
+  }
+  return out;
+}
+
+let currentChosung = ""; // 현재 입력된 초성 문자열
+
+// 필터 버튼 목록
+const CHO_BUTTONS = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const chosungContainer = document.getElementById('chosung');
 const chosungTokens = document.getElementById('chosungTokens');
-const petList = document.getElementById('petList');
-const petSearch = document.getElementById('petSearch');
-const s0hp = document.getElementById('s0_hp'), s0atk= document.getElementById('s0_atk'), s0def= document.getElementById('s0_def'), s0agi= document.getElementById('s0_agi');
-const sghp = document.getElementById('sg_hp'), sgatk= document.getElementById('sg_atk'), sgdef= document.getElementById('sg_def'), sgagi= document.getElementById('sg_agi');
-const obshp = document.getElementById('obs_hp'), obsatk= document.getElementById('obs_atk'), obsdef= document.getElementById('obs_def'), obsagi= document.getElementById('obs_agi');
-const kpiSuccess = document.getElementById('kpiSuccess'), kpiAppear  = document.getElementById('kpiAppear'), kpiTries = document.getElementById('kpiTries');
-const totMatches = document.getElementById('totMatches'), rank8Matches = document.getElementById('rank8Matches');
-const distBox = document.getElementById('dist');
-const btnCalc = document.getElementById('btnCalc'), btnReset= document.getElementById('btnReset'), btnClear= document.getElementById('btnClear');
-const btnModeHappy = document.getElementById('mode-happy');
-const btnModeNova = document.getElementById('mode-nova');
 
-let currentChosung="", selectedName=null, selectedRow=null, selectedItemEl=null;
-
-/* ========= 초성 키패드 ========= */
-const CHO = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+// 초성 토큰 렌더링
 function renderChosungTokens(){
   chosungTokens.innerHTML = "";
+  
+  // [수정사항] 항상 '선택한 초성' 라벨 표시
+  const label = document.createElement('div');
+  label.className = 'chip label';
+  label.textContent = "선택한 초성 :";
+  chosungTokens.appendChild(label);
+  
+  if(!currentChosung) return;
+  
   for(const ch of currentChosung){
     const t = document.createElement('div');
-    t.className = 'chip'; t.style.cursor = 'default'; t.textContent = ch;
+    t.className = 'chip active'; 
+    t.style.cursor = 'default';
+    t.textContent = ch;
     chosungTokens.appendChild(t);
   }
+  
+  // 초기화 버튼
+  const clearBtn = document.createElement('div');
+  clearBtn.className = 'chip';
+  clearBtn.textContent = '↺';
+  clearBtn.title = "초성 초기화";
+  clearBtn.onclick = () => {
+      currentChosung = "";
+      renderPetList();
+      renderChosungTokens();
+      Array.from(chosungContainer.children).forEach(el=>el.classList.remove('active'));
+  };
+  chosungTokens.appendChild(clearBtn);
 }
-CHO.forEach(c=>{
-  const chip=document.createElement('div');
-  chip.className='chip'; chip.textContent=c;
-  chip.addEventListener('click', ()=>{
-    currentChosung += c;
+
+// 키패드 생성
+CHO_BUTTONS.forEach(c => {
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.textContent = c;
+  chip.addEventListener('click', () => {
+    currentChosung += c; // 순차적으로 추가
     renderPetList();
     renderChosungTokens();
-    Array.from(chosungBar.children).forEach(el=>el.classList.remove('on'));
-    chip.classList.add('on');
+    
+    // 마지막 입력 강조
+    Array.from(chosungContainer.children).forEach(el=>el.classList.remove('active'));
+    chip.classList.add('active');
   });
-  chosungBar.appendChild(chip);
+  chosungContainer.appendChild(chip);
 });
-petSearch.addEventListener('input', renderPetList);
 
-/* ========= 목록 (Badge 기능 추가) ========= */
-function renderPetList(){
-  const kw = (petSearch.value||"").trim();
-  const names = ALL_NAMES;
-  const list = names.filter(n=>{
-    const a = kw? n.includes(kw): true;
-    const b = currentChosung? getChosung(n).startsWith(currentChosung): true;
-    return a && b;
-  });
-
-  petList.innerHTML="";
-  if(list.length===0){
-    const d=document.createElement('div'); d.className='item'; d.textContent='결과 없음';
-    petList.appendChild(d); return;
-  }
-
-  list.forEach(n=>{
-    const div=document.createElement('div'); div.className='item';
-    const left=document.createElement('div'); left.textContent = n;
-    
-    const right=document.createElement('div'); right.className="tags";
-     /* ★ 즐겨찾기 별 배지 */
-    const star = document.createElement('span');
-    const favOn = isFav(n);
-    star.className = 'tag fav' + (favOn ? ' on' : '');
-    star.textContent = favOn ? '★' : '☆';
-    star.title = favOn ? '즐겨찾기 해제' : '즐겨찾기 추가';
-    star.setAttribute('role','button');
-    star.setAttribute('aria-pressed', favOn ? 'true' : 'false');
-    star.tabIndex = 0;
-    const toggle = (e)=>{ e.stopPropagation(); toggleFav(n); };
-    star.addEventListener('click', toggle);
-    star.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ toggle(e); }});
-    right.appendChild(star);
-
-    div.appendChild(left);
-    div.appendChild(right);
-    
-    div.addEventListener('click', ()=>{
-      if(selectedItemEl) selectedItemEl.classList.remove('selected');
-      div.classList.add('selected');
-      selectedItemEl = div;
-      selectPetName(n);
+// 2. 즐겨찾기 렌더링
+function renderFavChips(){
+  const box = document.getElementById('favChips');
+  box.innerHTML = "";
+  if(FAVS.length===0) return;
+  FAVS.forEach(n => {
+    const c = document.createElement('div');
+    c.className = 'chip active'; 
+    c.textContent = n;
+    c.addEventListener('click', () => {
+        selectPet(n);
     });
-    if (n === selectedName) { div.classList.add('selected'); selectedItemEl = div; }
-    petList.appendChild(div);
+    box.appendChild(c);
   });
-  renderChosungTokens();
 }
 
-/* ========= 펫 선택 ========= */
-function selectPetName(n){
-  selectedName=n;
-  selectedRow=GLOBAL_TABLE[n]||null;
+// 3. 펫 리스트 렌더링 (필터링 로직 수정됨)
+function renderPetList() {
+  const kw = searchInput.value.trim();
+  const list = ALL_NAMES.filter(n => {
+    const matchKw = kw ? n.includes(kw) : true;
+    const matchCho = currentChosung ? getChosung(n).startsWith(currentChosung) : true;
+    return matchKw && matchCho;
+  });
 
-  if(selectedRow?.s0){
-    s0hp.value=selectedRow.s0.hp.toFixed(2); s0atk.value=selectedRow.s0.atk.toFixed(2);
-    s0def.value=selectedRow.s0.def.toFixed(2); s0agi.value=selectedRow.s0.agi.toFixed(2);
-  }else{ s0hp.value=s0atk.value=s0def.value=s0agi.value=""; }
-
-  if(selectedRow?.sg){
-    sghp.value=selectedRow.sg.hp.toFixed(2); sgatk.value=selectedRow.sg.atk.toFixed(2);
-    sgdef.value=selectedRow.sg.def.toFixed(2); sgagi.value=selectedRow.sg.agi.toFixed(2);
-  }else{ sghp.value=sgatk.value=sgdef.value=sgagi.value=""; }
-
-  if(selectedRow?.s0){
-    obshp.value = Math.floor(selectedRow.s0.hp)||"";
-    obsatk.value= Math.floor(selectedRow.s0.atk)||"";
-    obsdef.value= Math.floor(selectedRow.s0.def)||"";
-    obsagi.value= Math.floor(selectedRow.s0.agi)||"";
-  }else{
-    obshp.value=obsatk.value=obsdef.value=obsagi.value="";
-  }
-  showKpis(null);
-}
-
-/* ========= KPI 렌더링 로직 ========= */
-function getCSS(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-function resolveR(el){
-  const rSelf = parseFloat(el.getAttribute('r'));
-  if (isFinite(rSelf)) return rSelf;
-  const href = el.getAttribute('href') || el.getAttribute('xlink:href');
-  if (href && href[0]==='#'){
-    const ref = el.ownerSVGElement.getElementById(href.slice(1));
-    const rr = parseFloat(ref && ref.getAttribute('r'));
-    if (isFinite(rr)) return rr;
-  }
-  return 45;
-}
-function makeRing(fillEl, maskStrokeEl, colorGetter){
-  const r = resolveR(fillEl);
-  const C = 2 * Math.PI * r;
-  const baseStroke = fillEl.style.stroke || fillEl.getAttribute('stroke') || '#fff';
-  const strokeOn  = (col)=>{ fillEl.style.stroke = col || (colorGetter? colorGetter(): baseStroke); };
-  const strokeOff = ()=>{ fillEl.style.stroke = 'none'; };
-  const clamp01 = (x)=> (Number.isFinite(x)? Math.max(0, Math.min(1,x)) : 0);
-
-  function setFrac(frac){
-    const f = clamp01(frac);
-    if (f === 0){
-      fillEl.setAttribute('stroke-dasharray','0 1');
-      fillEl.setAttribute('stroke-dashoffset','0');
-      if(maskStrokeEl){
-        maskStrokeEl.setAttribute('stroke-dasharray','0 1');
-        maskStrokeEl.setAttribute('stroke-dashoffset','0');
-      }
-      strokeOff();
-      return;
-    }
-    const dash=C, gap=C, off=(1-f)*C;
-    fillEl.setAttribute('stroke-dasharray', `${dash} ${gap}`);
-    fillEl.setAttribute('stroke-dashoffset', `${off}`);
-    if(maskStrokeEl){
-      maskStrokeEl.setAttribute('stroke-dasharray', `${dash} ${gap}`);
-      maskStrokeEl.setAttribute('stroke-dashoffset', `${off}`);
-    }
-    strokeOn();
-  }
-  return { setFrac, C };
-}
-function polar0(cx,cy,r,deg){ const t=deg*Math.PI/180; return [cx + r*Math.cos(t), cy + r*Math.sin(t)]; }
-function arcPath0(cx,cy,r,deg0,deg1){
-  let s=deg0, e=deg1; while(e<s) e+=360;
-  const span=e-s, large=span>180?1:0;
-  const [x0,y0]=polar0(cx,cy,r,s), [x1,y1]=polar0(cx,cy,r,e);
-  return `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}`;
-}
-
-const succFill = document.getElementById('succFill');
-const succMaskStroke = document.getElementById('succMaskStroke');
-const { setFrac: _succSetFrac } = makeRing(succFill, succMaskStroke, ()=>getCSS('--accent'));
-const hud = document.getElementById('succHUD');
-const tail= document.getElementById('succTail');
-const core= document.getElementById('succCore');
-const flare= document.getElementById('succFlare');
-const SUCCR = resolveR(succFill);
-let head=0, run=false, lastTs=0;
-
-function tick(ts){
-  if(!run) return;
-  if(!lastTs) lastTs=ts;
-  const dt=(ts-lastTs)/1000; lastTs=ts;
-  const circum=2*Math.PI*SUCCR, pxPerSec=parseFloat(getCSS('--hud-speed'))||120;
-  const degPerSec=(pxPerSec/circum)*360;
-  head=(head + degPerSec*dt) % 360;
-
-  const TAIL_SPAN=360*0.22, CORE_SPAN=360*0.10;
-  tail.setAttribute('d', arcPath0(50,50,SUCCR, head-TAIL_SPAN, head));
-  core.setAttribute('d', arcPath0(50,50,SUCCR, head-CORE_SPAN, head));
-  const [fx,fy]=polar0(50,50,SUCCR, head);
-  flare.setAttribute('cx', fx.toFixed(2)); flare.setAttribute('cy', fy.toFixed(2));
-  requestAnimationFrame(tick);
-}
-function setSuccess(pct){
-  const f = Math.max(0, Math.min(100, Number(pct)||0))/100;
-  _succSetFrac(f);
-  document.getElementById('kpiSuccess').textContent = (f*100).toFixed(4) + '%';
-  if(f<=0){
-    hud.style.opacity=0; run=false; lastTs=0; head=0;
-    tail.setAttribute('d',''); core.setAttribute('d','');
-  }else{
-    hud.style.opacity=1; if(!run){ run=true; lastTs=0; requestAnimationFrame(tick); }
-  }
-}
-
-const apFill = document.getElementById('apFill');
-const { setFrac: _apSetFrac } = makeRing(apFill, null, ()=> '#7fd4ff');
-function setAppear(pctReal){
-  const p = Math.max(0, Number(pctReal)||0);
-  const frac = Math.min(p, 2) / 2;
-  _apSetFrac(frac);
-  document.getElementById('kpiAppear').textContent = p.toFixed(6) + '%';
-  document.getElementById('apBadge').style.display = (p>2 ? '' : 'none');
-}
-
-const trFill = document.getElementById('trFill');
-function colorByTries(x){
-  return (x<=5)  ? getCSS('--ok')
-       : (x<=20) ? getCSS('--warn')
-       :           getCSS('--bad');
-}
-const { setFrac: _trSetFrac } = makeRing(trFill, null, ()=> colorByTries(currTries));
-let currTries = 1;
-function setTries(t){
-  currTries = Math.max(1, Number(t)||1);
-  let frac;
-  if(currTries>=200) frac=1;
-  else{
-    const r = (Math.log10(currTries)-Math.log10(1)) / (Math.log10(200)-Math.log10(1));
-    frac = Math.max(0, Math.min(1, r));
-  }
-  trFill.style.stroke = colorByTries(currTries);
-  _trSetFrac(frac);
-  document.getElementById('kpiTries').textContent = (Number.isFinite(t)? Math.round(currTries) : '—');
-}
-
-function showKpis(res){
-  if(!res){
-    setSuccess(0);
-    setAppear(0);
-    setTries(1);
-    totMatches.textContent = "—";
-    rank8Matches.textContent = "—";
-    distBox.innerHTML = "";
+  petListEl.innerHTML = "";
+  if(list.length === 0) {
+    petListEl.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">검색 결과 없음</div>';
     return;
   }
 
-  const matches = res.matches|0;
-  const rank8   = res.rank8|0;
-  const appear  = matches/TOTAL*100;
-  const successPct = matches ? (rank8/matches*100) : 0;
-  const tries = successPct > 0 ? (100/successPct) : Infinity;
+  list.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'pet-item';
+    if(selectedName === n) item.classList.add('selected');
+    
+    // 이름 + 별
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'pet-name';
+    nameSpan.textContent = n;
+    
+    const star = document.createElement('span');
+    star.className = 'fav-icon ' + (isFav(n)?'active':'');
+    star.textContent = '★';
+    star.onclick = (e) => { e.stopPropagation(); toggleFav(n); };
 
-  setSuccess(successPct);
-  setAppear(appear);
-  setTries(isFinite(tries) ? tries : 200);
-
-  totMatches.textContent   = matches.toLocaleString();
-  rank8Matches.textContent = rank8.toLocaleString();
-
-  const entries = Object.entries(res.dist)
-    .map(([r,c]) => ({r:parseInt(r,10), c}))
-    .sort((a,b) => b.r - a.r || b.c - a.c);
-
-  let html = `<table class="table"><thead><tr><th>등급(베이스합)</th><th>건수</th><th>비율</th></tr></thead><tbody>`;
-  const total = matches || 1;
-  entries.forEach(e=>{
-    const pct = (e.c/total*100).toFixed(2);
-    const cls = (e.r===8 ? "ok" : (e.r>=5 ? "warn" : ""));
-    html += `<tr><td class="${cls}">${e.r}</td><td>${e.c.toLocaleString()}</td><td>${pct}%</td></tr>`;
+    item.appendChild(nameSpan);
+    item.appendChild(star);
+    
+    item.onclick = () => selectPet(n);
+    petListEl.appendChild(item);
   });
-  html += `</tbody></table>`;
-  distBox.innerHTML = html;
 }
 
-/* ========= 관측치 편의 ========= */
-function enableWheelStep(el){
-  el.addEventListener('wheel',(e)=>{
-    if(document.activeElement!==el) return;
-    e.preventDefault();
-    const delta = e.deltaY<0? 1 : -1;
-    const curr = parseInt(el.value||"0",10);
-    el.value = String(curr + delta);
-  }, {passive:false});
-}
-[obsatk,obshp,obsdef,obsagi].forEach(enableWheelStep);
-document.addEventListener('click', (e)=>{
-  const btn = e.target.closest('[data-delta][data-target]'); if(!btn) return;
-  const id = btn.getAttribute('data-target'); const delta = parseInt(btn.getAttribute('data-delta'),10);
-  const input=document.getElementById(id); if(!input) return;
-  const curr=parseInt(input.value||"0",10); input.value=String(curr+delta);
-});
+searchInput.addEventListener('input', renderPetList);
 
-/* ========= 엔진(합산 후 floor) - 꼬비아빠 로직 (원본 유지) ========= */
+// 4. 펫 선택 동작
+function selectPet(name) {
+  selectedName = name;
+  renderPetList(); // 하이라이트 갱신
+  
+  const row = GLOBAL_TABLE[name];
+  document.getElementById('selectedPetTitle').textContent = name;
+  
+  // S0, SG 표시
+  if(row && row.s0) {
+    document.getElementById('s0_hp').value = row.s0.hp.toFixed(2);
+    document.getElementById('s0_atk').value = row.s0.atk.toFixed(2);
+    document.getElementById('s0_def').value = row.s0.def.toFixed(2);
+    document.getElementById('s0_agi').value = row.s0.agi.toFixed(2);
+  }
+  if(row && row.sg) {
+    document.getElementById('sg_hp').value = row.sg.hp.toFixed(2);
+    document.getElementById('sg_atk').value = row.sg.atk.toFixed(2);
+    document.getElementById('sg_def').value = row.sg.def.toFixed(2);
+    document.getElementById('sg_agi').value = row.sg.agi.toFixed(2);
+  }
+  
+  // 자동 입력 (정수)
+  if(row && row.s0) {
+    document.getElementById('obs_hp').value = Math.floor(row.s0.hp);
+    document.getElementById('obs_atk').value = Math.floor(row.s0.atk);
+    document.getElementById('obs_def').value = Math.floor(row.s0.def);
+    document.getElementById('obs_agi').value = Math.floor(row.s0.agi);
+  }
+  
+  // 결과 초기화
+  resetResult();
+}
+
+/* ========= 계산 로직 ========= */
 function enumerate_kkoby(pku, obs){
   const k = new Decimal(pku.k);
   const fac = k.dividedBy(100);
   const u = pku.u;
-
   let matches = 0, rank8 = 0;
   const dist = {};
-
-  const baseCnt = 5;
-  const baseInit = -2;
+  const baseCnt = 5; const baseInit = -2;
 
   for(let hr=baseInit; hr<baseInit+baseCnt; hr++){
     for(let ar=baseInit; ar<baseInit+baseCnt; ar++){
@@ -1757,9 +1438,8 @@ function enumerate_kkoby(pku, obs){
                 const iA = baseA.times(fac);
                 const iD = baseD.times(fac);
                 const iG = baseG.times(fac);
-                
                 const preciseRound = (num) => new Decimal(num.toPrecision(15)).toDP(12);
-
+                
                 const r_hp = preciseRound(iH);
                 const r_atk = preciseRound(iA);
                 const r_def = preciseRound(iD);
@@ -1786,93 +1466,202 @@ function enumerate_kkoby(pku, obs){
   return {matches, rank8, dist};
 }
 
-/* ========= 계산 및 리셋 (수정됨) ========= */
-btnCalc.addEventListener('click', ()=>{
-  if(!selectedName){ showToast("펫을 먼저 선택하세요."); return; }
-  const obs=[obshp,obsatk,obsdef,obsagi].map(e=>parseInt(e.value,10));
-  if(obs.some(v=>!Number.isFinite(v))){ showToast("LV 1 초기치를 모두 입력하세요."); return; }
-
-  const row=GLOBAL_TABLE[selectedName]||{};
-  if(!row?.k || !row?.u){ showToast("이 펫은 성장률 데이터가 등록되어 있지 않습니다."); return; }
+document.getElementById('btnCalc').addEventListener('click', () => {
+  if(!selectedName) { showToast("먼저 페트를 목록에서 선택해주세요!"); return; }
+  const obs = [
+    parseInt(document.getElementById('obs_hp').value),
+    parseInt(document.getElementById('obs_atk').value),
+    parseInt(document.getElementById('obs_def').value),
+    parseInt(document.getElementById('obs_agi').value)
+  ];
   
-  const res = enumerate_kkoby({k: row.k, u: row.u}, obs);
-  showKpis(res);
+  const row = GLOBAL_TABLE[selectedName];
+  if(!row) return;
+  
+  const res = enumerate_kkoby({k:row.k, u:row.u}, obs);
+  renderResult(res);
 });
 
-function resetAll(){
-    selectedName=null; selectedRow=null;
-    petSearch.value=""; currentChosung="";
-    Array.from(chosungBar.children).forEach(el=>el.classList.remove('on'));
-    if (selectedItemEl) {
-        selectedItemEl.classList.remove('selected');
-        selectedItemEl = null;
-    }
+document.getElementById('btnReset').addEventListener('click', () => {
+    selectedName = null;
+    document.getElementById('selectedPetTitle').textContent = "페트를 선택해주세요";
+    ['s0','sg'].forEach(p => ['hp','atk','def','agi'].forEach(s => document.getElementById(`${p}_${s}`).value = ""));
+    ['hp','atk','def','agi'].forEach(s => document.getElementById(`obs_${s}`).value = "");
+    currentChosung = ""; // 초성 초기화
     renderChosungTokens();
     renderPetList();
-    [s0hp,s0atk,s0def,s0agi,sghp,sgatk,sgdef,sgagi,obshp,obsatk,obsdef,obsagi].forEach(i=>i.value="");
-    showKpis(null);
-}
-
-btnReset.addEventListener('click', resetAll);
-
-btnClear.addEventListener('click', ()=>{
-  petSearch.value=""; currentChosung="";
-  Array.from(chosungBar.children).forEach(el=>el.classList.remove('on'));
-  if (selectedItemEl) {
-    selectedItemEl.classList.remove('selected');
-    selectedItemEl = null;
-  }
-  renderChosungTokens();
-  renderPetList();
+    Array.from(chosungContainer.children).forEach(el=>el.classList.remove('active'));
+    resetResult();
 });
 
-/* ========= 모드 전환 (수정됨) ========= */
-function switchMode(mode) {
-    if (currentMode === mode) return;
-    currentMode = mode; // 1. 새 모드로 전역 변수 업데이트
-
-    // 테마 및 타이틀 업데이트
-    document.body.classList.remove('green-mode');
-    if (mode === 'happy') {
-        brandTitle.textContent = "꼬비아빠 놀이터 (Happy)";
-        dataTimestamp.textContent = `데이터 기준 ${petData.happy.timestamp}`;
-        btnModeHappy.classList.add('active');
-        btnModeNova.classList.remove('active');
-    } else { // nova
-        document.body.classList.add('green-mode');
-        brandTitle.textContent = "꼬비아빠 놀이터 (Nova)";
-        dataTimestamp.textContent = `데이터 기준 ${petData.nova.timestamp}`;
-        btnModeNova.classList.add('active');
-        btnModeHappy.classList.remove('active');
-    }
-
-    // 2. 새 모드에 맞는 페트 데이터 빌드
-    buildPetTable();
+function resetResult() {
+    document.getElementById('kpiSuccess').textContent = "0%";
+    document.getElementById('kpiTries').textContent = "-";
+    document.getElementById('ringSuccess').style.strokeDasharray = "0, 100";
+    document.getElementById('ringTries').style.strokeDasharray = "0, 100";
     
-    // 3. 새 모드에 맞는 즐겨찾기 불러오기
-    FAVS = loadFavs();
-    
-    // 4. 즐겨찾기 목록에 현재 페트 목록에 없는 페트가 있다면 제거 (데이터 업데이트 대비)
-    const validFavs = FAVS.filter(n => GLOBAL_TABLE[n]);
-    if (validFavs.length < FAVS.length) {
-      FAVS = validFavs;
-      saveFavs();
-    }
-    
-    // 5. UI 업데이트
-    renderFavChips(); // 즐겨찾기 칩 목록 업데이트
-    resetAll();       // 페트 목록 및 입력창 초기화
+    document.getElementById('kpiAppear').textContent = "-";
+    document.getElementById('totMatches').textContent = "-";
+    document.getElementById('rank8Matches').textContent = "-";
+    document.getElementById('dist').innerHTML = '<div style="text-align:center; color:var(--text-sub); padding:20px;">분석 대기 중...</div>';
 }
 
-btnModeHappy.addEventListener('click', () => switchMode('happy'));
-btnModeNova.addEventListener('click', () => switchMode('nova'));
+function renderResult(res) {
+    const matches = res.matches|0;
+    const rank8 = res.rank8|0;
+    const successPct = matches ? (rank8/matches*100) : 0;
+    const appear = matches/TOTAL*100;
+    const tries = successPct > 0 ? (100/successPct) : Infinity;
 
+    // Rings Animation
+    setTimeout(() => {
+        document.getElementById('ringSuccess').style.strokeDasharray = `${Math.min(successPct, 100).toFixed(1)}, 100`;
+        const tryGauge = Math.min((tries / 200) * 100, 100);
+        document.getElementById('ringTries').style.strokeDasharray = `${tryGauge.toFixed(1)}, 100`;
+        const tryColor = tries <= 5 ? 'var(--ok)' : (tries <= 20 ? 'var(--warn)' : 'var(--bad)');
+        document.getElementById('ringTries').style.stroke = tryColor;
+    }, 100);
 
-/* ========= 부팅 ========= */
+    document.getElementById('kpiSuccess').textContent = successPct.toFixed(2) + "%";
+    document.getElementById('kpiTries').textContent = Number.isFinite(tries) ? Math.round(tries) : "∞";
+    
+    document.getElementById('kpiAppear').textContent = appear.toFixed(4) + "%";
+    document.getElementById('totMatches').textContent = matches.toLocaleString();
+    document.getElementById('rank8Matches').textContent = rank8.toLocaleString();
+
+    // 상세 분포 생성
+    const entries = Object.entries(res.dist)
+      .map(([r,c]) => ({r:parseInt(r), c}))
+      .sort((a,b) => b.r - a.r); // 높은 등급부터
+
+    if(entries.length === 0) {
+        document.getElementById('dist').innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sub);">일치하는 결과가 없습니다.</div>`;
+        return;
+    }
+
+    // [수정] 8등급 분리 및 토글 UI 구성
+    let html = "";
+    
+    // 8등급 데이터 찾기
+    const grade8 = entries.find(e => e.r === 8);
+    const count8 = grade8 ? grade8.c : 0;
+    const pct8 = matches ? (count8/matches*100).toFixed(2) : "0.00";
+    
+    // 8등급 카드 (항상 표시)
+    html += `
+    <div class="rank8-card">
+      <div class="rank8-label">8등급 <span class="rank8-sub">(MAX)</span></div>
+      <div class="rank8-value">${count8.toLocaleString()}개 <span style="font-size:14px; opacity:0.7">(${pct8}%)</span></div>
+    </div>
+    `;
+
+    // 나머지 등급 (숨김 처리)
+    const otherGrades = entries.filter(e => e.r !== 8);
+    if(otherGrades.length > 0) {
+      html += `<button class="toggle-details-btn" onclick="toggleDetails(this)">▼ 나머지 등급 보기 (${otherGrades.length}종)</button>`;
+      
+      html += `<div class="hidden-details" id="hiddenDetails">
+        <table class="detail-table" style="margin-top:10px;">
+        <thead><tr><th>등급</th><th>개수</th><th>확률</th></tr></thead>
+        <tbody>`;
+      
+      otherGrades.forEach(e => {
+        const pct = (e.c/matches*100).toFixed(2);
+        let badgeClass = "rank-badge";
+        if(e.r >= 5) badgeClass += " a";
+        
+        html += `<tr>
+          <td><span class="${badgeClass}">${e.r}등급</span></td>
+          <td>${e.c.toLocaleString()}</td>
+          <td>${pct}%</td>
+        </tr>`;
+      });
+      
+      html += `</tbody></table></div>`;
+    }
+
+    document.getElementById('dist').innerHTML = html;
+}
+
+// 토글 함수 추가
+function toggleDetails(btn) {
+  const details = document.getElementById('hiddenDetails');
+  const isOpen = details.classList.contains('open');
+  
+  if(isOpen) {
+    details.classList.remove('open');
+    btn.innerHTML = `▼ 나머지 등급 보기`;
+    btn.style.background = "rgba(255,255,255,0.05)";
+  } else {
+    details.classList.add('open');
+    btn.innerHTML = `▲ 접기`;
+    btn.style.background = "rgba(255,255,255,0.15)";
+  }
+}
+
+/* ========= 유틸: Toast, Stepper, Wheel Step ========= */
+function showToast(msg) {
+    const wrap = document.getElementById('toastWrap');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    wrap.appendChild(t);
+    void t.offsetWidth;
+    t.style.opacity = '1';
+    t.style.transform = 'translateY(0)';
+    setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateY(10px)';
+        setTimeout(() => t.remove(), 300);
+    }, 2000);
+}
+
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.s-btn');
+    if(!btn) return;
+    const id = btn.dataset.target;
+    const delta = parseInt(btn.dataset.delta);
+    const input = document.getElementById(id);
+    if(input) {
+        input.value = (parseInt(input.value||0) + delta);
+    }
+});
+
+function enableWheelStep(el){
+  el.addEventListener('wheel',(e)=>{
+    if(document.activeElement!==el) return;
+    e.preventDefault();
+    const delta = e.deltaY<0? 1 : -1;
+    const curr = parseInt(el.value||"0",10);
+    el.value = String(curr + delta);
+  }, {passive:false});
+}
+['obs_hp','obs_atk','obs_def','obs_agi'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) enableWheelStep(el);
+});
+
+document.querySelector('.menu-toggle').addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.toggle('collapsed');
+    const sb = document.querySelector('.sidebar');
+    if(window.innerWidth <= 900) {
+        if(sb.style.display === 'none' || sb.style.display === '') {
+            sb.style.display = 'flex';
+        } else {
+            sb.style.display = 'none';
+        }
+    }
+});
+
+/* ========= 초기화 ========= */
 (function init(){
-  switchMode('happy'); // 기본 모드를 Happy로 설정
+    buildPetTable();
+    FAVS = loadFavs();
+    renderFavChips();
+    renderPetList();
+    renderChosungTokens(); // [수정] 초기 실행시 라벨 표시
 })();
+
 </script>
 </body>
 </html>
-
