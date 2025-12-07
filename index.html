@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>꼬비아빠 놀이터</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
 <!-- 폰트: Noto Sans KR + Tech 느낌의 Orbit -->
@@ -11,9 +11,9 @@
   :root {
     /* 기본(Happy) 테마 변수 - 다크 테마 고정 */
     --bg-gradient: linear-gradient(135deg, #0f1115 0%, #1a1d26 100%);
-    --sidebar-bg: rgba(22, 26, 34, 0.85);
+    --sidebar-bg: rgba(22, 26, 34, 0.95); /* 모바일 가독성을 위해 불투명도 상향 */
     --main-bg: rgba(15, 17, 21, 0.6);
-    --card-bg: rgba(35, 42, 54, 0.6);
+    --card-bg: rgba(35, 42, 54, 0.7);
     --border: 1px solid rgba(255, 255, 255, 0.1);
     --accent: #6aa0ff;
     --accent-glow: rgba(106, 160, 255, 0.3);
@@ -25,21 +25,21 @@
     --radius: 16px;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
   body {
     margin: 0; padding: 0;
     font-family: var(--font-main);
     background: var(--bg-gradient);
     color: var(--text-main);
     height: 100vh;
-    overflow: hidden; /* 전체 스크롤 방지, 내부 스크롤 사용 */
-    transition: all 0.3s ease;
+    overflow: hidden; /* 데스크탑: 내부 스크롤 */
   }
 
   /* --- 레이아웃 --- */
   .app-container {
     display: flex;
-    height: 100vh;
+    height: 100%;
     width: 100vw;
   }
 
@@ -51,12 +51,13 @@
     border-right: var(--border);
     display: flex;
     flex-direction: column;
-    z-index: 10;
-    transition: transform 0.3s ease;
+    z-index: 100; /* 모바일에서 위로 오게 */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .sidebar-header {
     padding: 20px;
     border-bottom: var(--border);
+    flex-shrink: 0;
   }
   .brand {
     font-family: var(--font-tech);
@@ -68,7 +69,7 @@
   }
   .ver { font-size: 11px; color: var(--text-sub); display: flex; justify-content: space-between; align-items: center;}
   
-  .search-area { padding: 15px 20px 5px; }
+  .search-area { padding: 15px 20px 5px; flex-shrink: 0; }
   .search-box {
     position: relative;
     margin-bottom: 10px;
@@ -78,27 +79,27 @@
     background: rgba(0,0,0,0.3);
     border: var(--border);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 12px; /* 터치 영역 확대 */
     color: var(--text-main);
     outline: none;
-    font-size: 14px;
+    font-size: 16px; /* iOS 자동 줌 방지 (16px 이상) */
   }
   .search-box input:focus { border-color: var(--accent); }
 
   .filter-chips {
-    display: flex; flex-wrap: wrap; gap: 6px; padding: 0 20px 15px;
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 0 20px 15px; flex-shrink: 0;
   }
-  /* 초성 토큰 영역 스타일 추가 */
   #chosungTokens {
     padding: 0 20px 10px; min-height: 38px;
     align-items: center;
   }
   
   .chip {
-    font-size: 11px; padding: 4px 8px; background: rgba(255,255,255,0.05);
+    font-size: 12px; padding: 6px 10px; background: rgba(255,255,255,0.05);
     border-radius: 6px; cursor: pointer; color: var(--text-sub);
     transition: 0.2s; border: 1px solid transparent;
     user-select: none;
+    touch-action: manipulation;
   }
   .chip:hover { background: rgba(255,255,255,0.1); }
   .chip.active {
@@ -117,13 +118,14 @@
     flex: 1;
     overflow-y: auto;
     padding: 0 10px 20px 20px;
+    -webkit-overflow-scrolling: touch; /* 부드러운 스크롤 */
   }
   .pet-list::-webkit-scrollbar { width: 6px; }
   .pet-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
 
   .pet-item {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px;
+    padding: 14px 16px; /* 터치 영역 확대 */
     margin-bottom: 8px;
     background: rgba(255,255,255,0.03);
     border-radius: 10px;
@@ -131,14 +133,14 @@
     border: 1px solid transparent;
     transition: all 0.2s;
   }
-  .pet-item:hover { background: rgba(255,255,255,0.07); transform: translateX(2px); }
+  .pet-item:active { background: rgba(255,255,255,0.07); transform: scale(0.98); }
   .pet-item.selected {
     background: var(--accent-glow);
     border-color: var(--accent);
     box-shadow: 0 0 15px var(--accent-glow);
   }
-  .pet-name { font-weight: 500; font-size: 14px; }
-  .fav-icon { color: var(--text-sub); font-size: 16px; transition: 0.2s; }
+  .pet-name { font-weight: 500; font-size: 15px; }
+  .fav-icon { color: var(--text-sub); font-size: 18px; padding: 4px; }
   .fav-icon.active { color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
 
   /* 2. 메인 컨텐츠 (계산기) */
@@ -149,28 +151,39 @@
     background: var(--main-bg);
     overflow-y: auto;
     position: relative;
+    -webkit-overflow-scrolling: touch;
   }
   
-  /* 상단 네비게이션 (모바일용 햄버거만 남김) */
+  /* 상단 네비게이션 */
   .top-nav {
-    display: flex; justify-content: flex-end; align-items: center;
-    padding: 15px 30px;
+    display: none; /* 데스크탑 기본 숨김 */
+    justify-content: flex-start; align-items: center;
+    padding: 15px 20px;
     z-index: 20;
-    min-height: 60px; /* 높이 확보 */
+    min-height: 60px;
+    background: rgba(15, 17, 21, 0.8);
+    backdrop-filter: blur(5px);
+    position: sticky; top: 0;
   }
   
-  .menu-toggle { display: none; font-size: 24px; color: var(--text-main); cursor: pointer; margin-right: auto; }
+  .menu-toggle { 
+    font-size: 24px; color: var(--text-main); cursor: pointer; 
+    padding: 8px; margin: -8px; /* 터치 영역 보정 */
+  }
+  .menu-title-mobile {
+      margin-left: 12px; font-weight: 700; font-size: 16px; color: var(--text-main);
+  }
 
   /* 대시보드 그리드 */
   .dashboard {
-    padding: 10px 30px 40px;
+    padding: 70px 30px 40px; /* PC: 상단 여백 10px -> 70px로 증가 */
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
     display: grid;
     grid-template-columns: 3fr 2fr;
     gap: 24px;
-    align-items: stretch; /* 패널 높이 맞춤 */
+    align-items: stretch; /* PC: 패널 높이 맞춤 (수정됨) */
   }
 
   /* 패널 공통 스타일 */
@@ -184,7 +197,7 @@
     display: flex;
     flex-direction: column;
     height: auto;
-    min-height: 580px; /* 요청사항 반영: 세로길이 키워서 밸런스 조정 (분석시 아래로 길어짐 방지) */
+    min-height: 580px; /* PC: 최소 높이 복구 (수정됨) */
   }
   .panel h2 {
     margin: 0 0 20px;
@@ -198,48 +211,34 @@
     background: var(--accent); border-radius: 2px;
   }
 
-  /* 안내사항 패널 스타일 - 높이 자동, 글씨 크기 키움 */
   .notice-panel {
-    grid-column: 1 / -1; /* 전체 너비 */
-    padding: 20px 30px; /* 패딩 증가 */
-    display: flex; flex-direction: column;
-    height: auto; 
-    min-height: auto; /* 안내사항은 고정 높이 X */
+    grid-column: 1 / -1; 
+    padding: 20px 24px;
+    min-height: auto; /* 안내사항은 높이 자동 */
   }
   .notice-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 15px; /* 마진 증가 */
+    margin-bottom: 10px;
   }
   .notice-title { 
-    font-size: 18px; /* 제목 글씨 크기 증가 */
-    font-weight: 700; 
-    color: var(--text-main); /* 색상 변경 */
+    font-size: 18px; font-weight: 700; color: var(--text-main);
     display: flex; align-items: center; gap: 10px; 
   }
-  .notice-title::before { 
-    content: 'ⓘ'; 
-    color: var(--accent); 
-    font-size: 20px; /* 아이콘 크기 증가 */
-  }
+  .notice-title::before { content: 'ⓘ'; color: var(--accent); font-size: 20px; }
   .notice-content {
-    padding-top: 15px; 
-    border-top: 1px solid rgba(255,255,255,0.1);
-    font-size: 16px; /* 본문 글씨 크기 증가 */
-    line-height: 1.8; /* 줄 간격 증가 */
-    color: var(--text-sub);
-    display: block; 
+    padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 16px; line-height: 1.8; color: var(--text-sub);
   }
-
 
   /* 입력 영역 */
   .stat-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 24px;
   }
   .stat-col label {
-    display: block; font-size: 11px; color: var(--text-sub); margin-bottom: 6px; text-align: center;
+    display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px; text-align: center;
   }
   .stat-box {
     background: rgba(0,0,0,0.2);
@@ -252,8 +251,8 @@
     width: 100%; background: transparent; border: none;
     color: var(--text-main); font-size: 16px; font-weight: 700;
     text-align: center; outline: none; font-family: var(--font-tech);
+    padding: 0;
   }
-  .stat-box input:focus { color: var(--accent); }
   /* number input 화살표 제거 */
   .stat-box input::-webkit-outer-spin-button,
   .stat-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -266,44 +265,39 @@
   }
   .input-group-title::after { content:''; height:1px; flex:1; background: rgba(255,255,255,0.1); }
 
-  /* 컨트롤 버튼 */
+  /* 컨트롤 버튼 (모바일 최적화) */
   .stepper-btn {
-    width: 100%; display: flex; gap: 4px; margin-top: 4px;
+    width: 100%; display: flex; gap: 4px; margin-top: 6px;
   }
   .s-btn {
-    flex: 1; background: rgba(255,255,255,0.05); border: none; color: var(--text-sub);
-    font-size: 10px; cursor: pointer; border-radius: 4px; padding: 4px 0;
+    flex: 1; background: rgba(255,255,255,0.08); border: none; color: var(--text-sub);
+    font-size: 14px; cursor: pointer; border-radius: 6px; 
+    padding: 12px 0; /* 터치 영역 대폭 확대 */
+    touch-action: manipulation;
   }
-  .s-btn:hover { background: rgba(255,255,255,0.15); color: var(--text-main); }
+  .s-btn:active { background: rgba(255,255,255,0.2); color: var(--text-main); }
 
-  /* 버튼 스타일 수정: 크기 키움 및 그림자 제거 */
   .action-btns { 
-    display: flex; gap: 16px; /* 간격 증가 */
-    margin-top: auto; /* 버튼을 항상 아래로 밀어넣음 */
-    padding-top: 30px; /* 패딩 증가 */
+    display: flex; gap: 12px; 
+    margin-top: 20px;
+    padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);
   }
   .btn-main {
     flex: 1; 
-    padding: 18px 24px; /* 패딩 크게 증가 */
-    border-radius: 16px; /* 둥글기 증가 */
+    padding: 16px; 
+    border-radius: 12px; 
     border: none;
     font-weight: 700; 
     cursor: pointer; 
-    font-size: 18px; /* 글씨 크기 증가 */
+    font-size: 16px; 
     transition: 0.2s;
   }
-  .btn-calc {
-    background: var(--accent); color: #000;
-    /* box-shadow 제거됨 */
-  }
-  .btn-calc:hover { transform: translateY(-3px); filter: brightness(1.1); /* 호버 시 그림자 제거 */ }
+  .btn-calc { background: var(--accent); color: #000; }
+  .btn-calc:active { transform: scale(0.98); filter: brightness(0.9); }
   .btn-reset { background: rgba(255,255,255,0.1); color: var(--text-main); }
-  .btn-reset:hover { background: rgba(255,255,255,0.2); transform: translateY(-3px); }
+  .btn-reset:active { background: rgba(255,255,255,0.2); transform: scale(0.98); }
 
-  /* 결과 패널 (HUD 스타일) */
-  .result-panel {
-    gap: 20px;
-  }
+  /* 결과 패널 */
   .hud-rings {
     display: flex; justify-content: space-around; align-items: flex-end;
     padding: 10px 0 20px;
@@ -345,22 +339,18 @@
   .rank8-value { font-family: var(--font-tech); color: #fff; font-size: 18px; font-weight: 700; }
   .rank8-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-left: 8px; }
 
-  /* 나머지 등급 토글 버튼 */
   .toggle-details-btn {
     width: 100%;
     background: rgba(255,255,255,0.05);
     border: none;
     color: var(--text-sub);
-    padding: 10px;
+    padding: 12px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 13px;
     cursor: pointer;
     display: flex; justify-content: center; align-items: center; gap: 5px;
-    transition: 0.2s;
   }
-  .toggle-details-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
   
-  /* 숨겨진 테이블 컨테이너 */
   .hidden-details {
     display: none;
     margin-top: 10px;
@@ -385,30 +375,77 @@
   .rank-badge.s { color: var(--ok); background: rgba(53, 199, 89, 0.15); border: 1px solid var(--ok); }
   .rank-badge.a { color: var(--warn); background: rgba(255, 179, 0, 0.15); border: 1px solid var(--warn); }
 
-  /* 반응형 (모바일) */
+  /* ========================================= */
+  /* [모바일 반응형 스타일 수정] - 핵심 부분 */
+  /* ========================================= */
   @media (max-width: 900px) {
-    .app-container { flex-direction: column; height: auto; min-height: 100vh; overflow-y: auto; }
-    .sidebar {
-      width: 100%; height: auto; max-height: 300px;
-      position: relative; border-right: none; border-bottom: var(--border);
+    body {
+      height: auto;
+      overflow: auto; /* 네이티브 스크롤 활성화 */
+      background: #1a1d26; /* 그라디언트 대신 단색 (성능) */
     }
-    .main-content { overflow: visible; }
-    .dashboard { grid-template-columns: 1fr; padding: 20px; }
-    .menu-toggle { display: block; }
-    /* 모바일에서는 높이 자동 */
-    .panel { height: auto; min-height: auto; }
     
-    /* 모바일에서 사이드바 토글 (옵션) */
-    .sidebar.collapsed { display: none; }
+    .app-container { 
+      flex-direction: column; 
+      height: auto; 
+      min-height: 100vh;
+    }
+
+    /* 사이드바는 모바일에서 '드로어(Drawer)' 형태로 동작 */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 85%; /* 화면의 85% */
+      max-width: 320px;
+      height: 100vh;
+      max-height: none;
+      transform: translateX(-100%); /* 기본 숨김 */
+      box-shadow: 2px 0 20px rgba(0,0,0,0.5);
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar.active {
+      transform: translateX(0); /* 열림 */
+    }
+
+    /* 사이드바 오버레이 (배경 어둡게) */
+    .sidebar-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(3px);
+      z-index: 90;
+      display: none;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .sidebar-overlay.active { display: block; opacity: 1; }
+
+    .main-content { 
+      overflow: visible; 
+      height: auto;
+    }
+    
+    .top-nav { display: flex; } /* 상단 메뉴바 표시 */
+
+    .dashboard { 
+      grid-template-columns: 1fr; 
+      padding: 15px; 
+      gap: 15px;
+    }
+    
+    .panel { 
+      padding: 20px; 
+      backdrop-filter: none; /* 성능 향상 */
+      min-height: auto; /* 모바일: 높이 자동 (수정됨) */
+    }
+    .notice-panel { padding: 15px 20px; }
   }
 
   #toastWrap {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-    z-index: 1000; display: flex; flex-direction: column; gap: 8px;
+    position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%);
+    z-index: 2000; display: flex; flex-direction: column; gap: 8px; width: 90%; pointer-events: none;
   }
   .toast {
-    background: var(--card-bg); color: var(--text-main);
-    padding: 10px 20px; border-radius: 30px; font-size: 14px;
+    background: rgba(30, 35, 45, 0.95); color: var(--text-main);
+    padding: 12px 20px; border-radius: 12px; font-size: 14px; text-align: center;
     border: 1px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     opacity: 0; transition: 0.3s;
   }
@@ -416,49 +453,47 @@
 </head>
 <body>
 
+<!-- 모바일 사이드바 배경 오버레이 -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="app-container">
   <!-- 1. 좌측 사이드바 (인벤토리) -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="brand">꼬비아빠 놀이터</div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="brand">꼬비아빠 놀이터</div>
+        <!-- 모바일용 닫기 버튼 -->
+        <div class="menu-toggle" id="closeSidebarBtn" style="font-size:20px; display:none;">✕</div>
+      </div>
       <div class="ver">
         <span id="data-timestamp">Data: 25.11.10</span>
-        <!-- 요청사항 반영: 문구 변경 -->
         <span>Date by.꼬비아빠</span>
       </div>
     </div>
     
     <div class="search-area">
       <div class="search-box">
-        <input type="text" id="petSearch" placeholder="페트 이름 검색..." />
+        <input type="text" id="petSearch" placeholder="페트 이름 검색..." autocomplete="off" />
       </div>
     </div>
     
-    <!-- 선택된 초성 토큰 영역 -->
-    <div class="filter-chips" id="chosungTokens" style="padding-bottom:5px; min-height:30px;">
-        <!-- 선택된 초성이 여기에 표시됨 -->
-    </div>
+    <div class="filter-chips" id="chosungTokens" style="padding-bottom:5px; min-height:30px;"></div>
 
-    <!-- 초성 필터 (키패드) -->
-    <div class="filter-chips" id="chosung">
-      <!-- JS로 생성됨 -->
-    </div>
+    <div class="filter-chips" id="chosung"></div>
 
-    <!-- 즐겨찾기 필터 -->
     <div style="padding: 0 20px 10px; display:flex; gap:10px; align-items:center;">
        <span style="font-size:11px; color:var(--text-sub);">즐겨찾기:</span>
        <div id="favChips" style="display:flex; gap:5px; flex-wrap:wrap;"></div>
     </div>
 
-    <div class="pet-list" id="petList">
-      <!-- 펫 리스트 아이템들이 여기에 들어감 -->
-    </div>
+    <div class="pet-list" id="petList"></div>
   </aside>
 
   <!-- 2. 메인 컨텐츠 -->
   <main class="main-content">
     <nav class="top-nav">
-      <div class="menu-toggle">☰</div>
+      <div class="menu-toggle" id="openSidebarBtn">☰</div>
+      <div class="menu-title-mobile">꼬비아빠 놀이터</div>
     </nav>
 
     <div class="dashboard">
@@ -503,11 +538,11 @@
           </div>
         </div>
 
-        <div class="input-group-title" style="margin-top:30px; color:var(--accent);">Lv.1 페트 능력치</div>
+        <div class="input-group-title" style="margin-top:20px; color:var(--accent);">Lv.1 페트 능력치 입력</div>
         <div class="stat-grid">
           <div class="stat-col">
             <label>내구력</label>
-            <div class="stat-box"><input type="number" id="obs_hp" placeholder="0"></div>
+            <div class="stat-box"><input type="number" id="obs_hp" placeholder="0" inputmode="numeric"></div>
             <div class="stepper-btn">
               <button class="s-btn" data-target="obs_hp" data-delta="-1">-1</button>
               <button class="s-btn" data-target="obs_hp" data-delta="1">+1</button>
@@ -515,7 +550,7 @@
           </div>
           <div class="stat-col">
             <label>공격력</label>
-            <div class="stat-box"><input type="number" id="obs_atk" placeholder="0"></div>
+            <div class="stat-box"><input type="number" id="obs_atk" placeholder="0" inputmode="numeric"></div>
             <div class="stepper-btn">
               <button class="s-btn" data-target="obs_atk" data-delta="-1">-1</button>
               <button class="s-btn" data-target="obs_atk" data-delta="1">+1</button>
@@ -523,7 +558,7 @@
           </div>
           <div class="stat-col">
             <label>방어력</label>
-            <div class="stat-box"><input type="number" id="obs_def" placeholder="0"></div>
+            <div class="stat-box"><input type="number" id="obs_def" placeholder="0" inputmode="numeric"></div>
             <div class="stepper-btn">
               <button class="s-btn" data-target="obs_def" data-delta="-1">-1</button>
               <button class="s-btn" data-target="obs_def" data-delta="1">+1</button>
@@ -531,7 +566,7 @@
           </div>
           <div class="stat-col">
             <label>순발력</label>
-            <div class="stat-box"><input type="number" id="obs_agi" placeholder="0"></div>
+            <div class="stat-box"><input type="number" id="obs_agi" placeholder="0" inputmode="numeric"></div>
             <div class="stepper-btn">
               <button class="s-btn" data-target="obs_agi" data-delta="-1">-1</button>
               <button class="s-btn" data-target="obs_agi" data-delta="1">+1</button>
@@ -604,7 +639,7 @@
 <div id="toastWrap"></div>
 
 <script>
-/* ========= 페트 데이터 (Happy) ========= */
+/* ========= 페트 데이터 (동일함, 생략 없음) ========= */
 const petData = {
     happy: {
         timestamp: "2025.11.10",
@@ -1246,11 +1281,9 @@ const petListEl = document.getElementById('petList');
 const searchInput = document.getElementById('petSearch');
 let selectedName = null;
 
-// [초성 검색 로직 이식] - 꼬비아빠 놀이터 스타일 (순차 입력)
 const CHO_CODE = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 const CHO_SIMPLE = (c)=>({"ㄲ":"ㄱ","ㄸ":"ㄷ","ㅃ":"ㅂ","ㅆ":"ㅅ","ㅉ":"ㅈ"}[c]||c);
 
-// 문자열 -> 초성 변환 (단일화된 자음으로)
 function getChosung(str){
   let out="";
   for(const ch of str){
@@ -1262,18 +1295,15 @@ function getChosung(str){
   return out;
 }
 
-let currentChosung = ""; // 현재 입력된 초성 문자열
+let currentChosung = "";
 
-// 필터 버튼 목록
 const CHO_BUTTONS = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 const chosungContainer = document.getElementById('chosung');
 const chosungTokens = document.getElementById('chosungTokens');
 
-// 초성 토큰 렌더링
 function renderChosungTokens(){
   chosungTokens.innerHTML = "";
   
-  // [수정사항] 항상 '선택한 초성' 라벨 표시
   const label = document.createElement('div');
   label.className = 'chip label';
   label.textContent = "선택한 초성 :";
@@ -1289,7 +1319,6 @@ function renderChosungTokens(){
     chosungTokens.appendChild(t);
   }
   
-  // 초기화 버튼
   const clearBtn = document.createElement('div');
   clearBtn.className = 'chip';
   clearBtn.textContent = '↺';
@@ -1303,24 +1332,21 @@ function renderChosungTokens(){
   chosungTokens.appendChild(clearBtn);
 }
 
-// 키패드 생성
 CHO_BUTTONS.forEach(c => {
   const chip = document.createElement('div');
   chip.className = 'chip';
   chip.textContent = c;
   chip.addEventListener('click', () => {
-    currentChosung += c; // 순차적으로 추가
+    currentChosung += c;
     renderPetList();
     renderChosungTokens();
     
-    // 마지막 입력 강조
     Array.from(chosungContainer.children).forEach(el=>el.classList.remove('active'));
     chip.classList.add('active');
   });
   chosungContainer.appendChild(chip);
 });
 
-// 2. 즐겨찾기 렌더링
 function renderFavChips(){
   const box = document.getElementById('favChips');
   box.innerHTML = "";
@@ -1331,12 +1357,12 @@ function renderFavChips(){
     c.textContent = n;
     c.addEventListener('click', () => {
         selectPet(n);
+        closeSidebar(); // 모바일에서 선택 후 닫기
     });
     box.appendChild(c);
   });
 }
 
-// 3. 펫 리스트 렌더링 (필터링 로직 수정됨)
 function renderPetList() {
   const kw = searchInput.value.trim();
   const list = ALL_NAMES.filter(n => {
@@ -1356,7 +1382,6 @@ function renderPetList() {
     item.className = 'pet-item';
     if(selectedName === n) item.classList.add('selected');
     
-    // 이름 + 별
     const nameSpan = document.createElement('span');
     nameSpan.className = 'pet-name';
     nameSpan.textContent = n;
@@ -1369,22 +1394,23 @@ function renderPetList() {
     item.appendChild(nameSpan);
     item.appendChild(star);
     
-    item.onclick = () => selectPet(n);
+    item.onclick = () => {
+        selectPet(n);
+        closeSidebar(); // 모바일에서는 선택 시 사이드바 닫기
+    };
     petListEl.appendChild(item);
   });
 }
 
 searchInput.addEventListener('input', renderPetList);
 
-// 4. 펫 선택 동작
 function selectPet(name) {
   selectedName = name;
-  renderPetList(); // 하이라이트 갱신
+  renderPetList();
   
   const row = GLOBAL_TABLE[name];
   document.getElementById('selectedPetTitle').textContent = name;
   
-  // S0, SG 표시
   if(row && row.s0) {
     document.getElementById('s0_hp').value = row.s0.hp.toFixed(2);
     document.getElementById('s0_atk').value = row.s0.atk.toFixed(2);
@@ -1398,7 +1424,6 @@ function selectPet(name) {
     document.getElementById('sg_agi').value = row.sg.agi.toFixed(2);
   }
   
-  // 자동 입력 (정수)
   if(row && row.s0) {
     document.getElementById('obs_hp').value = Math.floor(row.s0.hp);
     document.getElementById('obs_atk').value = Math.floor(row.s0.atk);
@@ -1406,11 +1431,9 @@ function selectPet(name) {
     document.getElementById('obs_agi').value = Math.floor(row.s0.agi);
   }
   
-  // 결과 초기화
   resetResult();
 }
 
-/* ========= 계산 로직 ========= */
 function enumerate_kkoby(pku, obs){
   const k = new Decimal(pku.k);
   const fac = k.dividedBy(100);
@@ -1467,7 +1490,7 @@ function enumerate_kkoby(pku, obs){
 }
 
 document.getElementById('btnCalc').addEventListener('click', () => {
-  if(!selectedName) { showToast("먼저 페트를 목록에서 선택해주세요!"); return; }
+  if(!selectedName) { showToast("먼저 페트를 목록에서 선택해주세요!"); openSidebar(); return; }
   const obs = [
     parseInt(document.getElementById('obs_hp').value),
     parseInt(document.getElementById('obs_atk').value),
@@ -1487,7 +1510,7 @@ document.getElementById('btnReset').addEventListener('click', () => {
     document.getElementById('selectedPetTitle').textContent = "페트를 선택해주세요";
     ['s0','sg'].forEach(p => ['hp','atk','def','agi'].forEach(s => document.getElementById(`${p}_${s}`).value = ""));
     ['hp','atk','def','agi'].forEach(s => document.getElementById(`obs_${s}`).value = "");
-    currentChosung = ""; // 초성 초기화
+    currentChosung = "";
     renderChosungTokens();
     renderPetList();
     Array.from(chosungContainer.children).forEach(el=>el.classList.remove('active'));
@@ -1513,7 +1536,6 @@ function renderResult(res) {
     const appear = matches/TOTAL*100;
     const tries = successPct > 0 ? (100/successPct) : Infinity;
 
-    // Rings Animation
     setTimeout(() => {
         document.getElementById('ringSuccess').style.strokeDasharray = `${Math.min(successPct, 100).toFixed(1)}, 100`;
         const tryGauge = Math.min((tries / 200) * 100, 100);
@@ -1529,25 +1551,20 @@ function renderResult(res) {
     document.getElementById('totMatches').textContent = matches.toLocaleString();
     document.getElementById('rank8Matches').textContent = rank8.toLocaleString();
 
-    // 상세 분포 생성
     const entries = Object.entries(res.dist)
       .map(([r,c]) => ({r:parseInt(r), c}))
-      .sort((a,b) => b.r - a.r); // 높은 등급부터
+      .sort((a,b) => b.r - a.r);
 
     if(entries.length === 0) {
         document.getElementById('dist').innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sub);">일치하는 결과가 없습니다.</div>`;
         return;
     }
 
-    // [수정] 8등급 분리 및 토글 UI 구성
     let html = "";
-    
-    // 8등급 데이터 찾기
     const grade8 = entries.find(e => e.r === 8);
     const count8 = grade8 ? grade8.c : 0;
     const pct8 = matches ? (count8/matches*100).toFixed(2) : "0.00";
     
-    // 8등급 카드 (항상 표시)
     html += `
     <div class="rank8-card">
       <div class="rank8-label">8등급 <span class="rank8-sub">(MAX)</span></div>
@@ -1555,7 +1572,6 @@ function renderResult(res) {
     </div>
     `;
 
-    // 나머지 등급 (숨김 처리)
     const otherGrades = entries.filter(e => e.r !== 8);
     if(otherGrades.length > 0) {
       html += `<button class="toggle-details-btn" onclick="toggleDetails(this)">▼ 나머지 등급 보기 (${otherGrades.length}종)</button>`;
@@ -1583,7 +1599,6 @@ function renderResult(res) {
     document.getElementById('dist').innerHTML = html;
 }
 
-// 토글 함수 추가
 function toggleDetails(btn) {
   const details = document.getElementById('hiddenDetails');
   const isOpen = details.classList.contains('open');
@@ -1599,7 +1614,6 @@ function toggleDetails(btn) {
   }
 }
 
-/* ========= 유틸: Toast, Stepper, Wheel Step ========= */
 function showToast(msg) {
     const wrap = document.getElementById('toastWrap');
     const t = document.createElement('div');
@@ -1641,25 +1655,36 @@ function enableWheelStep(el){
     if(el) enableWheelStep(el);
 });
 
-document.querySelector('.menu-toggle').addEventListener('click', () => {
-    document.querySelector('.sidebar').classList.toggle('collapsed');
-    const sb = document.querySelector('.sidebar');
-    if(window.innerWidth <= 900) {
-        if(sb.style.display === 'none' || sb.style.display === '') {
-            sb.style.display = 'flex';
-        } else {
-            sb.style.display = 'none';
-        }
-    }
-});
+/* [모바일 사이드바 제어 로직 수정] */
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+const closeBtn = document.getElementById('closeSidebarBtn');
 
-/* ========= 초기화 ========= */
+function openSidebar() {
+    sidebar.classList.add('active');
+    overlay.classList.add('active');
+    closeBtn.style.display = 'block';
+    // 모바일에서 스크롤 막기 (사이드바 내부만 스크롤되게)
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+    closeBtn.style.display = 'none';
+    document.body.style.overflow = 'auto'; // 스크롤 복구
+}
+
+document.getElementById('openSidebarBtn').addEventListener('click', openSidebar);
+closeBtn.addEventListener('click', closeSidebar);
+overlay.addEventListener('click', closeSidebar);
+
 (function init(){
     buildPetTable();
     FAVS = loadFavs();
     renderFavChips();
     renderPetList();
-    renderChosungTokens(); // [수정] 초기 실행시 라벨 표시
+    renderChosungTokens();
 })();
 
 </script>
